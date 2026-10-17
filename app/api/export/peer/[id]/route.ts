@@ -11,6 +11,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
   const { id } = await ctx.params;
   const peer = await db.peer.findFirst({ where: { id, server: { userId: user.id } }, include: { server: true } });
   if (!peer) return new NextResponse("not found", { status: 404 });
+  if (!peer.privateKeyEnc) return new NextResponse("imported peer: its private key is on the device. Rotate keys to issue a new config.", { status: 409 });
   return new NextResponse(peerConfig(peer.server, peer), {
     headers: {
       "Content-Type": "text/plain; charset=utf-8",

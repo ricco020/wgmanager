@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { FREE_LIMITS } from "@/lib/site";
 import { isPro } from "@/lib/stripe";
 import { ServerForm } from "./ServerForm";
+import { ImportForm } from "./ImportForm";
 import { deleteServer } from "../actions";
 
 export const metadata: Metadata = { title: "Dashboard" };
@@ -46,6 +47,10 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
       <div className="panel" style={{ marginTop: 30 }}>
         <h2>New server</h2>
         {canAdd ? <ServerForm /> : <p className="muted">The free plan includes {FREE_LIMITS.servers} server. <a href="/pricing">Upgrade to Pro</a> for unlimited servers.</p>}
+      </div>
+      <div className="panel" style={{ marginTop: 18 }}>
+        <h2>Already running WireGuard? Import your wg0.conf</h2>
+        {canAdd ? <ImportForm pro={pro} /> : <p className="muted">The free plan includes {FREE_LIMITS.servers} server. <a href="/pricing">Upgrade to Pro</a> to import more.</p>}
       </div>
       {!pro && <p className="muted" style={{ marginTop: 20 }}>Need more? <a href="/pricing">Pro: unlimited servers and peers for 9 EUR/month</a>.</p>}
       {user.stripeCustomerId && (

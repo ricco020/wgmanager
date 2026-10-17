@@ -60,8 +60,9 @@ model Peer {
   name            String
   ip              String
   publicKey       String
-  privateKeyEnc   String
-  presharedKeyEnc String
+  /// Null for peers imported from an existing wg0.conf: the device keeps its own private key.
+  privateKeyEnc   String?
+  presharedKeyEnc String?
   /// What the client routes through the tunnel: 0.0.0.0/0, ::/0 (full) or the subnet (split).
   allowedIps      String   @default("0.0.0.0/0, ::/0")
   keepalive       Int      @default(25)

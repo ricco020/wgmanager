@@ -56,8 +56,8 @@ ul.check li { padding: 5px 0 5px 24px; position: relative; color: var(--text); }
 ul.check li::before { content: ">"; position: absolute; left: 0; color: var(--amber); font-weight: 600; }
 form.stack { display: grid; gap: 12px; max-width: 460px; }
 label { display: grid; gap: 5px; font-size: 13px; color: var(--muted); }
-input, select { font-family: var(--mono); font-size: 15px; padding: 10px 12px; background: #0a0d12; color: var(--text); border: 1px solid var(--line); border-radius: 6px; width: 100%; }
-input:focus, select:focus { outline: 2px solid var(--amber); outline-offset: 0; border-color: var(--amber); }
+input, select, textarea { font-family: var(--mono); font-size: 15px; padding: 10px 12px; background: #0a0d12; color: var(--text); border: 1px solid var(--line); border-radius: 6px; width: 100%; }
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--amber); outline-offset: 0; border-color: var(--amber); }
 .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .err { color: var(--red); border: 1px solid var(--red); border-radius: 6px; padding: 10px 12px; background: rgba(248,81,73,0.08); }
 .ok { color: var(--green); border: 1px solid var(--green); border-radius: 6px; padding: 10px 12px; background: rgba(63,185,80,0.08); }

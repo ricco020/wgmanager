@@ -1,4 +1,4 @@
-import { createCipheriv, createDecipheriv, createHash, generateKeyPairSync, randomBytes } from "crypto";
+import { createCipheriv, createDecipheriv, createHash, createPrivateKey, createPublicKey, generateKeyPairSync, randomBytes } from "crypto";
 
 /**
  * WireGuard keys are raw 32-byte Curve25519 keys, base64 (standard) encoded.
@@ -13,6 +13,21 @@ export function wgKeypair(): { privateKey: string; publicKey: string } {
     privateKey: Buffer.from(priv.d, "base64url").toString("base64"),
     publicKey: Buffer.from(pub.x, "base64url").toString("base64"),
   };
+}
+
+/** A WireGuard key is 32 bytes in standard base64: 44 characters ending with "=". */
+export function validWgKey(s: string): boolean {
+  if (!/^[A-Za-z0-9+/]{43}=$/.test(s)) return false;
+  return Buffer.from(s, "base64").length === 32;
+}
+
+/** Public key of an existing X25519 private key (used when importing a wg0.conf). */
+export function wgPublicKeyOf(privateKeyB64: string): string {
+  const d = Buffer.from(privateKeyB64, "base64").toString("base64url");
+  const priv = createPrivateKey({ key: { kty: "OKP", crv: "X25519", d, x: "" }, format: "jwk" });
+  const pub = createPublicKey(priv).export({ format: "jwk" }) as { x?: string };
+  if (!pub.x) throw new Error("x25519 derive failed");
+  return Buffer.from(pub.x, "base64url").toString("base64");
 }
 
 export function wgPresharedKey(): string {

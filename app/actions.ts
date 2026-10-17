@@ -4,12 +4,12 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { COOKIE, COOKIE_OPTIONS, currentUser, hashPassword, passwordAcceptable, signSession, verifyPassword } from "@/lib/auth";
-import { encrypt, wgKeypair, wgPresharedKey } from "@/lib/crypto";
+import { encrypt, wgKeypair, wgPresharedKey, wgPublicKeyOf } from "@/lib/crypto";
 import { db } from "@/lib/db";
 import { FREE_LIMITS } from "@/lib/site";
 import { cleanRef } from "@/lib/stats";
 import { isPro } from "@/lib/stripe";
-import { nextFreeIp, parseCidr, validDns, validEndpoint } from "@/lib/wg";
+import { nextFreeIp, parseCidr, parseServerConf, validDns, validEndpoint } from "@/lib/wg";
 
 export type ActionState = { error?: string } | undefined;
 
@@ -71,6 +71,47 @@ export async function createServer(_prev: ActionState, form: FormData): Promise<
     data: { userId: user.id, name, endpoint, port, subnet, dns, mtu, publicKey: kp.publicKey, privateKeyEnc: encrypt(kp.privateKey) },
   });
   redirect(`/dashboard/servers/${server.id}`);
+}
+
+/**
+ * Import an existing server wg0.conf: the server keeps its keys, the peers keep theirs (their private keys are on the
+ * devices, so no client config can be issued for them until "Rotate keys"). Free plan: 1 server, 3 peers.
+ */
+export async function importServer(_prev: ActionState, form: FormData): Promise<ActionState> {
+  const user = await currentUser();
+  if (!user) redirect("/login");
+  const name = String(form.get("name") ?? "").trim().slice(0, 60) || "Imported server";
+  const endpoint = String(form.get("endpoint") ?? "").trim();
+  const dns = String(form.get("dns") ?? "1.1.1.1").trim() || "1.1.1.1";
+  const text = String(form.get("conf") ?? "");
+  const onlyFirst = form.get("onlyFirst") === "on";
+  if (!validEndpoint(endpoint)) return { error: "Public endpoint must be a hostname or an IP address, without port." };
+  if (!validDns(dns)) return { error: "DNS must be one or more addresses separated by commas." };
+  if (!text.trim()) return { error: "Paste the content of your server wg0.conf." };
+  const { conf, error } = parseServerConf(text);
+  if (!conf) return { error };
+  const pro = await isPro(user);
+  const count = await db.server.count({ where: { userId: user.id } });
+  if (count >= FREE_LIMITS.servers && !pro) {
+    return { error: `The free plan includes ${FREE_LIMITS.servers} server. Upgrade to Pro to import more.` };
+  }
+  let peers = conf.peers;
+  if (peers.length > FREE_LIMITS.peers && !pro) {
+    if (!onlyFirst) {
+      return { error: `This file has ${peers.length} peers; the free plan includes ${FREE_LIMITS.peers}. Upgrade to Pro (9 EUR/month) to import all of them, or tick "import only the first ${FREE_LIMITS.peers} peers".` };
+    }
+    peers = peers.slice(0, FREE_LIMITS.peers);
+  }
+  let publicKey: string;
+  try { publicKey = wgPublicKeyOf(conf.privateKey); } catch { return { error: "[Interface] PrivateKey could not be read as an X25519 key." }; }
+  const server = await db.server.create({
+    data: {
+      userId: user.id, name, endpoint, port: conf.port, subnet: conf.subnet, dns, mtu: conf.mtu,
+      publicKey, privateKeyEnc: encrypt(conf.privateKey),
+      peers: { create: peers.map((p) => ({ name: p.name, ip: p.ip, publicKey: p.publicKey, privateKeyEnc: null, presharedKeyEnc: p.presharedKey ? encrypt(p.presharedKey) : null })) },
+    },
+  });
+  redirect(`/dashboard/servers/${server.id}?imported=${peers.length}`);
 }
 
 export async function deleteServer(form: FormData) {

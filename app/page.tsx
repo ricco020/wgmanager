@@ -62,6 +62,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
           <li>Add peers: laptop, phone, office router. Choose full tunnel or split tunnel per peer.</li>
           <li>Download <code>wg0.conf</code> for the server and one <code>.conf</code> (or QR code) per peer.</li>
           <li>On the server: <code>wg-quick up wg0</code>. On each device: import the file or scan the code.</li>
+          <li>Already running WireGuard? Paste your existing <code>wg0.conf</code>: keys and peers are imported as they are, nothing changes on the devices.</li>
         </ol>
         <p className="muted">
           Need a server first? A small VPS with a public IPv4 is enough. The free
