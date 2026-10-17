@@ -11,7 +11,7 @@ export function AuthForm({ mode, next }: { mode: "signup" | "login"; next: strin
       <p className="muted">{mode === "signup" ? "1 server and 3 peers, free, no card required." : "Welcome back."}</p>
       <form className="stack" action={action}>
         <input type="hidden" name="next" value={next} />
-        <label>Email<input name="email" type="email" required autoComplete="email" /></label>
+        <label>Email<input name="email" type="email" required autoComplete="email" defaultValue={state?.values?.email} /></label>
         <label>Password (10 characters minimum)<input name="password" type="password" required minLength={10} autoComplete={mode === "signup" ? "new-password" : "current-password"} /></label>
         {state?.error && <div className="err">{state.error}</div>}
         <button className="btn" type="submit" disabled={pending}>{pending ? "One moment" : mode === "signup" ? "Create account" : "Log in"}</button>
