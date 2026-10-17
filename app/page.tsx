@@ -22,7 +22,7 @@ export default function Home() {
           <div className="bar"><i /><i /><i /></div>
           <div><span className="c"># laptop.conf, downloaded from the dashboard</span></div>
           <div><span className="k">[Interface]</span></div>
-          <div>PrivateKey = <span className="c">(stored encrypted, shown once)</span></div>
+          <div>PrivateKey = <span className="c">(stored encrypted, decrypted only when you download)</span></div>
           <div>Address = 10.8.0.2/24</div>
           <div>DNS = 1.1.1.1</div>
           <br />
