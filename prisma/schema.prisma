@@ -17,8 +17,21 @@ model User {
   stripeCustomerId String?  @unique
   /// Pro access is valid until this date (period end + grace). Refreshed from Stripe.
   proUntil         DateTime?
+  /// Acquisition channel captured from ?ref= on first visit (cookie), e.g. vs-tool-en, vs-art-fr.
+  ref              String?
   createdAt        DateTime @default(now())
   servers          Server[]
+}
+
+/// Aggregated page hits (no IP, no user agent stored): one row per day, path and ref.
+model Hit {
+  id   String @id @default(cuid())
+  day  String
+  path String
+  ref  String @default("")
+  n    Int    @default(0)
+
+  @@unique([day, path, ref])
 }
 
 model Server {

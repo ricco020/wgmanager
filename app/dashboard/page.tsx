@@ -48,6 +48,11 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         {canAdd ? <ServerForm /> : <p className="muted">The free plan includes {FREE_LIMITS.servers} server. <a href="/pricing">Upgrade to Pro</a> for unlimited servers.</p>}
       </div>
       {!pro && <p className="muted" style={{ marginTop: 20 }}>Need more? <a href="/pricing">Pro: unlimited servers and peers for 9 EUR/month</a>.</p>}
+      {user.stripeCustomerId && (
+        <form action="/api/stripe/portal" method="post" style={{ marginTop: 20 }}>
+          <button className="btn ghost sm" type="submit">Manage subscription (invoices, card, cancel)</button>
+        </form>
+      )}
     </>
   );
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { currentUser } from "@/lib/auth";
 import { FREE_LIMITS, PRO_PRICE_EUR } from "@/lib/site";
 import { isPro, stripeReady } from "@/lib/stripe";
+import { recordHit } from "@/lib/stats";
 
 export const metadata: Metadata = { title: "Pricing" };
 export const dynamic = "force-dynamic";
@@ -10,6 +11,7 @@ export default async function Pricing({ searchParams }: { searchParams: Promise<
   const user = await currentUser();
   const pro = user ? await isPro(user) : false;
   const { error } = await searchParams;
+  await recordHit("/pricing");
   const ready = stripeReady();
   return (
     <>

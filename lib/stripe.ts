@@ -44,6 +44,20 @@ export async function createCheckout(user: User): Promise<string | null> {
   return s.url ?? null;
 }
 
+/** Billing portal configuration created for this product (headline, terms, cancel at period end). */
+const PORTAL_CONFIG = "bpc_1URVXfIjutMXe9x88HgOpA97";
+
+/** Opens the Stripe customer portal: invoices, card update, cancellation in one click. */
+export async function createPortal(user: User): Promise<string | null> {
+  const sk = process.env.STRIPE_SECRET_KEY;
+  if (!sk || !user.stripeCustomerId) return null;
+  const params: Record<string, string> = { customer: user.stripeCustomerId, return_url: `${SITE}/dashboard`, configuration: PORTAL_CONFIG };
+  const r = await fetch(`${API}/billing_portal/sessions`, { method: "POST", headers: headers(sk), body: new URLSearchParams(params) });
+  if (!r.ok) { console.error("stripe portal", r.status, await r.text()); return null; }
+  const s = (await r.json()) as { url?: string };
+  return s.url ?? null;
+}
+
 /** Looks up a completed session (id comes from the URL, so Stripe is the judge, not the URL). */
 export async function customerFromSession(sessionId: string): Promise<{ customer: string; userId: string } | null> {
   const sk = process.env.STRIPE_SECRET_KEY;

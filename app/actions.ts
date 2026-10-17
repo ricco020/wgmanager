@@ -7,6 +7,7 @@ import { COOKIE, COOKIE_OPTIONS, currentUser, hashPassword, passwordAcceptable, 
 import { encrypt, wgKeypair, wgPresharedKey } from "@/lib/crypto";
 import { db } from "@/lib/db";
 import { FREE_LIMITS } from "@/lib/site";
+import { cleanRef } from "@/lib/stats";
 import { isPro } from "@/lib/stripe";
 import { nextFreeIp, parseCidr, validDns, validEndpoint } from "@/lib/wg";
 
@@ -27,7 +28,8 @@ export async function signup(_prev: ActionState, form: FormData): Promise<Action
   if (!passwordAcceptable(password)) return { error: "Password must be at least 10 characters." };
   const existing = await db.user.findUnique({ where: { email } });
   if (existing) return { error: "An account already exists for this email. Log in instead." };
-  const user = await db.user.create({ data: { email, hash: hashPassword(password) } });
+  const ref = cleanRef((await cookies()).get("wg_ref")?.value);
+  const user = await db.user.create({ data: { email, hash: hashPassword(password), ref: ref || null } });
   await setSession(user.id);
   redirect(next === "pro" ? "/pricing" : "/dashboard");
 }

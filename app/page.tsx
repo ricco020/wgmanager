@@ -1,6 +1,11 @@
 import { FREE_LIMITS, PRO_PRICE_EUR } from "@/lib/site";
+import { recordHit } from "@/lib/stats";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default async function Home({ searchParams }: { searchParams: Promise<{ ref?: string }> }) {
+  const { ref } = await searchParams;
+  await recordHit("/", ref);
   return (
     <>
       <section className="hero">
