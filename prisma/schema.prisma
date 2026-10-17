@@ -1,0 +1,59 @@
+// WireGuard Manager: data model.
+// Private keys are stored ENCRYPTED (AES-256-GCM, lib/crypto.ts) and never logged.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String   @id @default(cuid())
+  email            String   @unique
+  hash             String
+  stripeCustomerId String?  @unique
+  /// Pro access is valid until this date (period end + grace). Refreshed from Stripe.
+  proUntil         DateTime?
+  createdAt        DateTime @default(now())
+  servers          Server[]
+}
+
+model Server {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String
+  endpoint      String
+  port          Int      @default(51820)
+  /// Tunnel subnet in CIDR, e.g. 10.8.0.0/24. The server takes the first host address.
+  subnet        String   @default("10.8.0.0/24")
+  dns           String   @default("1.1.1.1")
+  mtu           Int?
+  publicKey     String
+  privateKeyEnc String
+  createdAt     DateTime @default(now())
+  peers         Peer[]
+
+  @@index([userId, createdAt])
+}
+
+model Peer {
+  id              String   @id @default(cuid())
+  serverId        String
+  server          Server   @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  name            String
+  ip              String
+  publicKey       String
+  privateKeyEnc   String
+  presharedKeyEnc String
+  /// What the client routes through the tunnel: 0.0.0.0/0, ::/0 (full) or the subnet (split).
+  allowedIps      String   @default("0.0.0.0/0, ::/0")
+  keepalive       Int      @default(25)
+  createdAt       DateTime @default(now())
+
+  @@unique([serverId, ip])
+  @@index([serverId, createdAt])
+}
