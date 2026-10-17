@@ -23,7 +23,7 @@ export default async function ServerPage({ params }: { params: Promise<{ id: str
   const qrs = await Promise.all(server.peers.map((p) => QRCode.toDataURL(peerConfig(server, p), { margin: 1, width: 220, errorCorrectionLevel: "M" })));
   return (
     <>
-      <p style={{ marginTop: 30 }}><a href="/app">All servers</a></p>
+      <p style={{ marginTop: 30 }}><a href="/dashboard">All servers</a></p>
       <h1>{server.name}</h1>
       <div className="panel" style={{ marginBottom: 24 }}>
         <table>

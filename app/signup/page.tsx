@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "Create a free account" };
 export const dynamic = "force-dynamic";
 
 export default async function Signup({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
-  if (await currentUser()) redirect("/app");
+  if (await currentUser()) redirect("/dashboard");
   const { next } = await searchParams;
   return <AuthForm mode="signup" next={next ?? ""} />;
 }

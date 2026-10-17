@@ -21,7 +21,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <a href="/pricing">Pricing</a>
               {user ? (
                 <>
-                  <a href="/app">Dashboard</a>
+                  <a href="/dashboard">Dashboard</a>
                   <form action="/api/auth/logout" method="post" style={{ display: "inline" }}>
                     <button className="btn ghost sm" type="submit" style={{ marginLeft: 18 }}>Log out</button>
                   </form>

@@ -7,6 +7,6 @@ export const metadata: Metadata = { title: "Log in" };
 export const dynamic = "force-dynamic";
 
 export default async function Login() {
-  if (await currentUser()) redirect("/app");
+  if (await currentUser()) redirect("/dashboard");
   return <AuthForm mode="login" next="" />;
 }

@@ -29,7 +29,7 @@ export async function signup(_prev: ActionState, form: FormData): Promise<Action
   if (existing) return { error: "An account already exists for this email. Log in instead." };
   const user = await db.user.create({ data: { email, hash: hashPassword(password) } });
   await setSession(user.id);
-  redirect(next === "pro" ? "/pricing" : "/app");
+  redirect(next === "pro" ? "/pricing" : "/dashboard");
 }
 
 export async function login(_prev: ActionState, form: FormData): Promise<ActionState> {
@@ -40,7 +40,7 @@ export async function login(_prev: ActionState, form: FormData): Promise<ActionS
   const ok = verifyPassword(password, user?.hash ?? "scrypt$16384$AAAAAAAAAAAAAAAAAAAAAA$AAAA");
   if (!user || !ok) return { error: "Email or password is incorrect." };
   await setSession(user.id);
-  redirect("/app");
+  redirect("/dashboard");
 }
 
 export async function createServer(_prev: ActionState, form: FormData): Promise<ActionState> {
@@ -68,7 +68,7 @@ export async function createServer(_prev: ActionState, form: FormData): Promise<
   const server = await db.server.create({
     data: { userId: user.id, name, endpoint, port, subnet, dns, mtu, publicKey: kp.publicKey, privateKeyEnc: encrypt(kp.privateKey) },
   });
-  redirect(`/app/servers/${server.id}`);
+  redirect(`/dashboard/servers/${server.id}`);
 }
 
 export async function deleteServer(form: FormData) {
@@ -76,7 +76,7 @@ export async function deleteServer(form: FormData) {
   if (!user) redirect("/login");
   const id = String(form.get("id") ?? "");
   await db.server.deleteMany({ where: { id, userId: user.id } });
-  redirect("/app");
+  redirect("/dashboard");
 }
 
 export async function addPeer(_prev: ActionState, form: FormData): Promise<ActionState> {
@@ -100,7 +100,7 @@ export async function addPeer(_prev: ActionState, form: FormData): Promise<Actio
   await db.peer.create({
     data: { serverId: server.id, name, ip, publicKey: kp.publicKey, privateKeyEnc: encrypt(kp.privateKey), presharedKeyEnc: encrypt(wgPresharedKey()), allowedIps, keepalive },
   });
-  revalidatePath(`/app/servers/${server.id}`);
+  revalidatePath(`/dashboard/servers/${server.id}`);
   return undefined;
 }
 
@@ -111,7 +111,7 @@ export async function deletePeer(form: FormData) {
   const peer = await db.peer.findFirst({ where: { id, server: { userId: user.id } } });
   if (peer) {
     await db.peer.delete({ where: { id } });
-    revalidatePath(`/app/servers/${peer.serverId}`);
+    revalidatePath(`/dashboard/servers/${peer.serverId}`);
   }
 }
 
@@ -124,6 +124,6 @@ export async function rotatePeer(form: FormData) {
   if (peer) {
     const kp = wgKeypair();
     await db.peer.update({ where: { id }, data: { publicKey: kp.publicKey, privateKeyEnc: encrypt(kp.privateKey), presharedKeyEnc: encrypt(wgPresharedKey()) } });
-    revalidatePath(`/app/servers/${peer.serverId}`);
+    revalidatePath(`/dashboard/servers/${peer.serverId}`);
   }
 }

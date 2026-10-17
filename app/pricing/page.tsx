@@ -27,7 +27,7 @@ export default async function Pricing({ searchParams }: { searchParams: Promise<
             <li>QR codes</li>
             <li>Encrypted key storage</li>
           </ul>
-          {user ? <a className="btn ghost" href="/app">Open dashboard</a> : <a className="btn ghost" href="/signup">Create a free account</a>}
+          {user ? <a className="btn ghost" href="/dashboard">Open dashboard</a> : <a className="btn ghost" href="/signup">Create a free account</a>}
         </div>
         <div className="panel pro">
           <span className="tag pro">Pro</span>

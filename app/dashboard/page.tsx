@@ -31,7 +31,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
           <tbody>
             {servers.map((s) => (
               <tr key={s.id}>
-                <td><a href={`/app/servers/${s.id}`}>{s.name}</a></td>
+                <td><a href={`/dashboard/servers/${s.id}`}>{s.name}</a></td>
                 <td>{s.endpoint}:{s.port}</td>
                 <td>{s.subnet}</td>
                 <td>{s._count.peers}</td>

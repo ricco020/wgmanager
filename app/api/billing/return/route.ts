@@ -14,7 +14,7 @@ export async function GET(req: Request) {
     if (user) {
       const u = await db.user.update({ where: { id: user.id }, data: { stripeCustomerId: found.customer } });
       await refreshPro(u);
-      return NextResponse.redirect(`${SITE}/app?welcome=pro`, 303);
+      return NextResponse.redirect(`${SITE}/dashboard?welcome=pro`, 303);
     }
   }
   return NextResponse.redirect(`${SITE}/pricing?error=1`, 303);

@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 FROM node:22-alpine
-WORKDIR /app
+WORKDIR /srv
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY package.json package-lock.json ./
 COPY prisma ./prisma
