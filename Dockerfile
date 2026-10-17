@@ -6,6 +6,9 @@ COPY package.json package-lock.json ./
 COPY prisma ./prisma
 RUN npm ci --no-audit --no-fund
 COPY . .
+# Public URL is inlined by next build (NEXT_PUBLIC_*): Railway passes service variables as build args.
+ARG NEXT_PUBLIC_SITE_URL
+ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 ENV NODE_ENV=production
 RUN npm run build
 EXPOSE 3000

@@ -31,8 +31,15 @@ export async function POST(req: Request) {
   if (meta?.projet && meta.projet !== PROJECT) return NextResponse.json({ received: true, ignored: "other project" });
 
   const customer = typeof obj.customer === "string" ? obj.customer : undefined;
-  if (customer && (evt.type ?? "").startsWith("customer.subscription.")) {
-    const user = await db.user.findUnique({ where: { stripeCustomerId: customer } });
+  const type = evt.type ?? "";
+  if (customer && (type.startsWith("customer.subscription.") || type === "checkout.session.completed")) {
+    let user = await db.user.findUnique({ where: { stripeCustomerId: customer } });
+    // The browser may never come back to /api/billing/return (tab closed, network): the subscription
+    // and the Checkout session both carry metadata[userId], so the customer is linked from here too.
+    if (!user && meta?.userId) {
+      const byId = await db.user.findUnique({ where: { id: meta.userId } });
+      if (byId && !byId.stripeCustomerId) user = await db.user.update({ where: { id: byId.id }, data: { stripeCustomerId: customer } });
+    }
     if (user) await refreshPro(user);
   }
   console.log("webhook", JSON.stringify({ id: evt.id, type: evt.type, object: obj.id }));
