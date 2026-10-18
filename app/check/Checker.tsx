@@ -1,0 +1,103 @@
+"use client";
+
+import { useRef, useState } from "react";
+import { checkConfig, HANDOFF_KEY, type CheckResult } from "@/lib/check";
+import { FREE_LIMITS, PRO_PRICE_EUR } from "@/lib/site";
+
+const SAMPLE = `[Interface]
+Address = 10.8.0.1/24
+ListenPort = 51820
+PrivateKey = aF0o53XJEjcl2+ZWL3E5wl7O7gGixHGQ5egSGSgt9Tc=
+MTU = 1500
+
+[Peer]
+# laptop
+PublicKey = qAXRCjpqAx8gnyC5NmNPgP7kiJjiYEbc/0/H8Z9oTXk=
+AllowedIPs = 10.8.0.2/24
+
+[Peer]
+# phone
+PublicKey = 6M4zx9ir7bsBjLrxe37ecnBl0stbQW4eCFYAwUvDn8o=
+AllowedIPs = 10.8.0.3/32
+`;
+
+export function Checker({ signedIn }: { signedIn: boolean }) {
+  const ta = useRef<HTMLTextAreaElement>(null);
+  const [res, setRes] = useState<CheckResult | null>(null);
+  const [text, setText] = useState("");
+
+  function run() {
+    const t = ta.current?.value ?? "";
+    if (!t.trim()) return;
+    const r = checkConfig(t);
+    setRes(r);
+    setText(t);
+    // Usage counter only: the file content is not part of the request.
+    fetch(`/api/check-run?kind=${r.kind}`, { method: "POST", keepalive: true }).catch(() => {});
+  }
+
+  function sendToImport() {
+    try { sessionStorage.setItem(HANDOFF_KEY, text); } catch { /* private mode: the user pastes again */ }
+    window.location.href = signedIn ? "/dashboard#import" : "/signup?next=import";
+  }
+
+  const counts = res ? { error: 0, warn: 0, info: 0, ...Object.fromEntries((["error", "warn", "info"] as const).map((l) => [l, res.findings.filter((f) => f.level === l).length])) } : null;
+
+  return (
+    <div className="checker">
+      <label>Paste a wg0.conf (server) or a client .conf
+        <textarea ref={ta} rows={14} spellCheck={false} autoComplete="off" placeholder={"[Interface]\nPrivateKey = ...\nAddress = 10.8.0.2/32\n\n[Peer]\nPublicKey = ...\nEndpoint = vpn.example.com:51820\nAllowedIPs = 0.0.0.0/0, ::/0"} style={{ fontSize: 13 }} />
+      </label>
+      <p style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center", margin: "12px 0" }}>
+        <button className="btn" type="button" onClick={run}>Check this config</button>
+        <button className="btn ghost sm" type="button" onClick={() => { if (ta.current) ta.current.value = SAMPLE; run(); }}>Try a broken example</button>
+        <span className="muted" style={{ fontSize: 13 }}>Runs in your browser. The file, and its keys, are never uploaded.</span>
+      </p>
+
+      {res && counts && (
+        <div className="panel fade" aria-live="polite">
+          <p style={{ marginBottom: 14 }}>
+            <span className="tag">{res.kind === "unknown" ? "type unclear" : `${res.kind} config`}</span>{" "}
+            <span className="tag">{res.peers} peer{res.peers === 1 ? "" : "s"}</span>{" "}
+            <span className="tag" style={counts.error ? { borderColor: "var(--red)", color: "var(--red)" } : { borderColor: "var(--green)", color: "var(--green)" }}>{counts.error} error{counts.error === 1 ? "" : "s"}</span>{" "}
+            <span className="tag">{counts.warn} warning{counts.warn === 1 ? "" : "s"}</span>
+          </p>
+          {res.findings.length === 0 ? (
+            <div className="ok">No problem found. Keys are well-formed, addresses and routes are consistent.</div>
+          ) : (
+            <ul className="findings">
+              {res.findings.map((f, i) => (
+                <li key={i} className={`f-${f.level}`}>
+                  <b>{f.level === "error" ? "Error" : f.level === "warn" ? "Warning" : "Note"}</b>
+                  <span className="muted"> {f.where}{f.line ? `, line ${f.line}` : ""}</span>
+                  <div>{f.msg}</div>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {res.kind === "server" && res.peers > 0 && (
+            <div className="handoff">
+              <h3>Stop editing this file by hand</h3>
+              <p className="muted">
+                Import it into WireGuard Manager: the {res.peers} peer{res.peers === 1 ? "" : "s"} and keys stay exactly as they are, nothing changes on the devices.
+                New peers get the next free IP (no more overlaps), and each one gets its .conf and QR code.
+                {res.peers > FREE_LIMITS.peers
+                  ? ` The free plan holds ${FREE_LIMITS.peers} peers; Pro (${PRO_PRICE_EUR} EUR/month) holds all ${res.peers}.`
+                  : ` Free for ${FREE_LIMITS.servers} server and ${FREE_LIMITS.peers} peers.`}
+              </p>
+              <button className="btn" type="button" onClick={sendToImport}>Import this wg0.conf</button>
+            </div>
+          )}
+          {res.kind === "client" && (
+            <div className="handoff">
+              <h3>Issue client files that are right the first time</h3>
+              <p className="muted">WireGuard Manager writes every client .conf from the server&apos;s settings: matching keys, a free IP, IPv6 and DNS covered in full tunnel, keepalive set. Free for {FREE_LIMITS.peers} peers.</p>
+              <a className="btn" href={signedIn ? "/dashboard" : "/signup"}>Manage peers for free</a>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

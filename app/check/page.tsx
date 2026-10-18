@@ -1,0 +1,75 @@
+import type { Metadata } from "next";
+import { currentUser } from "@/lib/auth";
+import { recordHit } from "@/lib/stats";
+import { SITE } from "@/lib/site";
+import { Checker } from "./Checker";
+
+export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "WireGuard config checker: validate a wg0.conf or client .conf",
+  description: "Paste a WireGuard config and find what breaks it: truncated keys, overlapping AllowedIPs, missing Endpoint, MTU above 1420, IPv6 and DNS leaks in full tunnel. Runs in your browser, keys are never uploaded.",
+  alternates: { canonical: `${SITE}/check` },
+};
+
+const CHECKS: Array<[string, string]> = [
+  ["Keys", "Each PrivateKey, PublicKey and PresharedKey must be 44 base64 characters that decode to 32 bytes. A key cut by a terminal or a chat app fails here, and so does a private key pasted where the other side's public key goes."],
+  ["Unknown keys and sections", "wg-quick refuses the whole file on a single typo (\"AllowdIPs\", \"[Peers]\") or a key in the wrong section, such as Endpoint under [Interface]."],
+  ["Overlapping AllowedIPs", "On a server, two peers whose AllowedIPs overlap fight over the same addresses: wg hands the range to the last peer loaded, the other one keeps its handshake but receives nothing. 10.8.0.2/24 instead of 10.8.0.2/32 is the usual cause."],
+  ["Duplicate peers", "The same PublicKey listed twice keeps only one entry, so one device can never connect."],
+  ["Endpoint", "A client needs Endpoint = host:port to start the handshake. An Endpoint on a private address (192.168.x.x, 10.x.x.x) only works from inside that network."],
+  ["MTU", "Above 1420 on a standard 1500 link, packets fragment once WireGuard adds its headers: sites load halfway, SSH stalls after login. Below 1280, IPv6 breaks."],
+  ["Leaks in full tunnel", "0.0.0.0/0 without ::/0 lets IPv6 traffic bypass the tunnel. A full tunnel without a DNS line keeps sending lookups to the local resolver."],
+  ["Server hygiene", "Missing ListenPort (random port at each start), DNS on the server (it rewrites the server's own resolver), SaveConfig = true (hand edits overwritten), the NAT interface name in PostUp."],
+];
+
+export default async function CheckPage({ searchParams }: { searchParams: Promise<{ ref?: string }> }) {
+  const { ref } = await searchParams;
+  await recordHit("/check", ref);
+  const user = await currentUser();
+  return (
+    <>
+      <section style={{ padding: "48px 0 20px" }}>
+        <div className="fade" style={{ color: "var(--amber)", textTransform: "uppercase", letterSpacing: "0.14em", fontSize: 12, marginBottom: 14 }}>Free tool, no account</div>
+        <h1 className="fade d1">WireGuard config checker</h1>
+        <p className="fade d2 muted" style={{ maxWidth: "62ch", fontSize: "1.05rem" }}>
+          Handshake never completes, connected but no traffic, works on Wi-Fi but not on mobile data?
+          Paste the server <code>wg0.conf</code> or the client file and see, line by line, what wg-quick will
+          refuse and what will quietly misroute your packets.
+        </p>
+      </section>
+
+      <section className="fade d3" style={{ marginBottom: 40 }}>
+        <Checker signedIn={!!user} />
+      </section>
+
+      <section className="panel" style={{ marginBottom: 24 }}>
+        <h2>What it checks</h2>
+        <dl className="checks">
+          {CHECKS.map(([t, d]) => (
+            <div key={t}><dt>{t}</dt><dd className="muted">{d}</dd></div>
+          ))}
+        </dl>
+      </section>
+
+      <section className="panel" style={{ marginBottom: 24 }}>
+        <h2>What it cannot see</h2>
+        <p className="muted">
+          A file can be perfect and the tunnel still down. The checker reads text; it does not know whether UDP port{" "}
+          <code>51820</code> is open in your firewall or cloud security group, whether <code>net.ipv4.ip_forward</code> is on,
+          or whether the client&apos;s PublicKey really matches the private key on the device. If the file passes, check those next,
+          and run <code>wg show</code> on the server: a &quot;latest handshake&quot; line tells you the keys and the port are right.
+        </p>
+      </section>
+
+      <section className="panel" style={{ marginBottom: 24 }}>
+        <h2>Privacy</h2>
+        <p className="muted">
+          The check runs entirely in this page&apos;s JavaScript. The config, private keys included, is not sent anywhere; we only
+          count that a check was run. If you choose to import the file into WireGuard Manager afterwards, it is sent then, over
+          HTTPS, and the keys are stored encrypted (AES-256-GCM).
+        </p>
+      </section>
+    </>
+  );
+}

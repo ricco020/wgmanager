@@ -18,6 +18,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <header className="nav">
             <a className="brand" href="/">WireGuard <span>Manager</span></a>
             <nav>
+              <a href="/check">Config checker</a>
               <a href="/pricing">Pricing</a>
               {user ? (
                 <>

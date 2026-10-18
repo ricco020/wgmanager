@@ -48,7 +48,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         <h2>New server</h2>
         {canAdd ? <ServerForm /> : <p className="muted">The free plan includes {FREE_LIMITS.servers} server. <a href="/pricing">Upgrade to Pro</a> for unlimited servers.</p>}
       </div>
-      <div className="panel" style={{ marginTop: 18 }}>
+      <div className="panel" id="import" style={{ marginTop: 18 }}>
         <h2>Already running WireGuard? Import your wg0.conf</h2>
         {canAdd ? <ImportForm pro={pro} /> : <p className="muted">The free plan includes {FREE_LIMITS.servers} server. <a href="/pricing">Upgrade to Pro</a> to import more.</p>}
       </div>

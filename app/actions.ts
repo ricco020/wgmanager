@@ -41,7 +41,7 @@ export async function signup(_prev: ActionState, form: FormData): Promise<Action
   const ref = cleanRef((await cookies()).get("wg_ref")?.value);
   const user = await db.user.create({ data: { email, hash: hashPassword(password), ref: ref || null } });
   await setSession(user.id);
-  redirect(next === "pro" ? "/pricing" : "/dashboard");
+  redirect(next === "pro" ? "/pricing" : next === "import" ? "/dashboard#import" : "/dashboard");
 }
 
 export async function login(_prev: ActionState, form: FormData): Promise<ActionState> {
