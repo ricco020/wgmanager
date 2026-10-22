@@ -52,7 +52,8 @@ export async function login(_prev: ActionState, form: FormData): Promise<ActionS
   const ok = verifyPassword(password, user?.hash ?? "scrypt$16384$AAAAAAAAAAAAAAAAAAAAAA$AAAA");
   if (!user || !ok) return fail(form, "Email or password is incorrect.", ["email"]);
   await setSession(user.id);
-  redirect("/dashboard");
+  const next = String(form.get("next") ?? "");
+  redirect(next === "pro" ? "/pricing" : next === "import" ? "/dashboard#import" : "/dashboard");
 }
 
 export async function createServer(_prev: ActionState, form: FormData): Promise<ActionState> {

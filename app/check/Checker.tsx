@@ -33,12 +33,14 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
     setRes(r);
     setText(t);
     // Usage counter only: the file content is not part of the request.
-    fetch(`/api/check-run?kind=${r.kind}`, { method: "POST", keepalive: true }).catch(() => {});
+    fetch(`/api/check-run?kind=${r.kind}&peers=${r.peers}`, { method: "POST", keepalive: true }).catch(() => {});
   }
 
   function sendToImport() {
     try { sessionStorage.setItem(HANDOFF_KEY, text); } catch { /* private mode: the user pastes again */ }
-    window.location.href = signedIn ? "/dashboard#import" : "/signup?next=import";
+    const peers = res?.peers ?? 0;
+    fetch(`/api/check-run?kind=import&peers=${peers}`, { method: "POST", keepalive: true }).catch(() => {});
+    window.location.href = signedIn ? "/dashboard#import" : `/signup?next=import&peers=${peers}`;
   }
 
   const counts = res ? { error: 0, warn: 0, info: 0, ...Object.fromEntries((["error", "warn", "info"] as const).map((l) => [l, res.findings.filter((f) => f.level === l).length])) } : null;
