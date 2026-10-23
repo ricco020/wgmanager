@@ -14,6 +14,7 @@ export async function POST(req: Request) {
   const kind = q.get("kind");
   const peers = q.has("peers") ? `-${bucket(Number(q.get("peers")))}` : "";
   if (kind === "import") await recordHit(`/check:import${peers}`);
+  else if (kind === "addpeer") await recordHit(`/check:addpeer${peers}`);
   else await recordHit(kind === "server" || kind === "client" ? `/check:run-${kind}${kind === "server" ? peers : ""}` : "/check:run");
   return new Response(null, { status: 204 });
 }

@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { checkConfig, HANDOFF_KEY, type CheckResult } from "@/lib/check";
 import { FREE_LIMITS, PRO_PRICE_EUR } from "@/lib/site";
+import { AddPeer } from "./AddPeer";
 
 const SAMPLE = `[Interface]
 Address = 10.8.0.1/24
@@ -36,9 +37,9 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
     fetch(`/api/check-run?kind=${r.kind}&peers=${r.peers}`, { method: "POST", keepalive: true }).catch(() => {});
   }
 
-  function sendToImport() {
-    try { sessionStorage.setItem(HANDOFF_KEY, text); } catch { /* private mode: the user pastes again */ }
-    const peers = res?.peers ?? 0;
+  function sendToImport(extra = "") {
+    try { sessionStorage.setItem(HANDOFF_KEY, text.replace(/\s*$/, "\n") + extra); } catch { /* private mode: the user pastes again */ }
+    const peers = (res?.peers ?? 0) + (extra ? 1 : 0);
     fetch(`/api/check-run?kind=import&peers=${peers}`, { method: "POST", keepalive: true }).catch(() => {});
     window.location.href = signedIn ? "/dashboard#import" : `/signup?next=import&peers=${peers}`;
   }
@@ -88,9 +89,10 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
                   ? ` The free plan holds ${FREE_LIMITS.peers} peers; Pro (${PRO_PRICE_EUR} EUR/month) holds all ${res.peers}.`
                   : ` Free for ${FREE_LIMITS.servers} server and ${FREE_LIMITS.peers} peers.`}
               </p>
-              <button className="btn" type="button" onClick={sendToImport}>Import this wg0.conf</button>
+              <button className="btn" type="button" onClick={() => sendToImport()}>Import this wg0.conf</button>
             </div>
           )}
+          {res.kind === "server" && <AddPeer key={text} text={text} peers={res.peers} signedIn={signedIn} onImport={sendToImport} />}
           {res.kind === "client" && (
             <div className="handoff">
               <h3>Issue client files that are right the first time</h3>
