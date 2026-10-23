@@ -14,6 +14,7 @@ export function PeerForm({ serverId }: { serverId: string }) {
         <label>Routing
           <select name="mode" defaultValue={v.mode ?? "full"}>
             <option value="full">Full tunnel: all traffic through the VPN</option>
+            <option value="nolan">Full tunnel, local network still reachable (printer, NAS)</option>
             <option value="split">Split tunnel: only the VPN subnet</option>
           </select>
         </label>

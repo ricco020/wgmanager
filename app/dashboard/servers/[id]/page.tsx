@@ -58,7 +58,7 @@ systemctl enable --now wg-quick@wg0
       {server.peers.map((p, i) => (
         <div className="panel" key={p.id} style={{ marginBottom: 14, display: "grid", gridTemplateColumns: "1fr auto", gap: 18 }}>
           <div>
-            <h3>{p.name} <span className="tag">{p.ip}</span> {peerHasConfig(p) ? <span className="tag">{p.allowedIps.startsWith("0.0.0.0") ? "full tunnel" : "split tunnel"}</span> : <span className="tag">imported</span>}</h3>
+            <h3>{p.name} <span className="tag">{p.ip}</span> {peerHasConfig(p) ? <span className="tag">{p.allowedIps.startsWith("0.0.0.0/0") ? "full tunnel" : p.allowedIps.startsWith("0.0.0.0/") ? "full tunnel, LAN bypassed" : "split tunnel"}</span> : <span className="tag">imported</span>}</h3>
             <p className="muted" style={{ fontSize: 13 }}>Public key <code>{p.publicKey}</code></p>
             {!peerHasConfig(p) && <p className="muted" style={{ fontSize: 13 }}>Imported peer: its private key is on the device, not here. It keeps working as is. Rotate keys to issue a fresh .conf and QR code from this page (the old device config then stops working).</p>}
             <div className="peer-actions">

@@ -19,6 +19,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <a className="brand" href="/">WireGuard <span>Manager</span></a>
             <nav>
               <a href="/check">Config checker</a>
+              <a href="/allowedips">AllowedIPs</a>
               <a href="/pricing">Pricing</a>
               {user ? (
                 <>

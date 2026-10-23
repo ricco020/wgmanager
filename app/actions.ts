@@ -1,6 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { fullTunnelExceptLan } from "@/lib/cidr";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { COOKIE, COOKIE_OPTIONS, currentUser, hashPassword, passwordAcceptable, signSession, verifyPassword } from "@/lib/auth";
@@ -150,7 +151,7 @@ export async function addPeer(_prev: ActionState, form: FormData): Promise<Actio
   const ip = nextFreeIp(server.subnet, server.peers.map((p) => p.ip));
   if (!ip) return fail(form, "This subnet is full. Create a server with a larger subnet.", PEER_FIELDS);
   const kp = wgKeypair();
-  const allowedIps = mode === "split" ? server.subnet : "0.0.0.0/0, ::/0";
+  const allowedIps = mode === "split" ? server.subnet : mode === "nolan" ? fullTunnelExceptLan(server.subnet) : "0.0.0.0/0, ::/0";
   await db.peer.create({
     data: { serverId: server.id, name, ip, publicKey: kp.publicKey, privateKeyEnc: encrypt(kp.privateKey), presharedKeyEnc: encrypt(wgPresharedKey()), allowedIps, keepalive },
   });
