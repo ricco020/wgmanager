@@ -54,6 +54,15 @@ export default async function CheckPage({ searchParams }: { searchParams: Promis
       </section>
 
       <section className="panel" style={{ marginBottom: 24 }}>
+        <h2>Full tunnel, but the printer and the NAS must stay local?</h2>
+        <p className="muted">
+          WireGuard has no exclude option: AllowedIPs has to list every block you want routed. The{" "}
+          <a href="/allowedips?ref=check">AllowedIPs calculator</a> subtracts your LAN (or any address) from 0.0.0.0/0 and ::/0
+          and gives you the line to paste.
+        </p>
+      </section>
+
+      <section className="panel" style={{ marginBottom: 24 }}>
         <h2>What it cannot see</h2>
         <p className="muted">
           A file can be perfect and the tunnel still down. The checker reads text; it does not know whether UDP port{" "}
