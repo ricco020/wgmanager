@@ -7,8 +7,8 @@ import { Checker } from "./Checker";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "WireGuard config checker: validate a wg0.conf or client .conf",
-  description: "Paste a WireGuard config and find what breaks it: truncated keys, overlapping AllowedIPs, missing Endpoint, MTU above 1420, IPv6 and DNS leaks in full tunnel. Runs in your browser, keys are never uploaded.",
+  title: "WireGuard config checker: validate a wg0.conf, add a peer",
+  description: "Paste a WireGuard config and find what breaks it: truncated keys, overlapping AllowedIPs, missing Endpoint, MTU above 1420, IPv6 and DNS leaks in full tunnel. Then add a peer: next free IP, keys, client .conf and QR code. Runs in your browser, keys are never uploaded.",
   alternates: { canonical: `${SITE}/check` },
 };
 
@@ -35,7 +35,8 @@ export default async function CheckPage({ searchParams }: { searchParams: Promis
         <p className="fade d2 muted" style={{ maxWidth: "62ch", fontSize: "1.05rem" }}>
           Handshake never completes, connected but no traffic, works on Wi-Fi but not on mobile data?
           Paste the server <code>wg0.conf</code> or the client file and see, line by line, what wg-quick will
-          refuse and what will quietly misroute your packets.
+          refuse and what will quietly misroute your packets. On a server file, add a peer in the same page: next free IP,
+          fresh keys, the block for the server, the client file and its QR code.
         </p>
       </section>
 
