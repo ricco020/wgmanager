@@ -9,6 +9,8 @@ export const metadata: Metadata = {
   title: "WireGuard QR code generator: turn a .conf into a QR for the mobile app",
   description: "Paste or open a WireGuard client .conf and get the QR code the Android and iOS apps scan, with a check of the keys and fields the app rejects. Runs in your browser: the private key is never uploaded.",
   alternates: { canonical: `${SITE}/qr` },
+  // Held back until the design gate (Orch/outils/revue_design.py) reaches 7/10: 5.8 on 24/10.
+  robots: { index: false, follow: true },
 };
 
 export default async function QrPage({ searchParams }: { searchParams: Promise<{ ref?: string }> }) {
