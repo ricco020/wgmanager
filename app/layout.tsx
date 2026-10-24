@@ -17,7 +17,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <div className="wrap">
           <header className="nav">
             <a className="brand" href="/">WireGuard <span>Manager</span></a>
-            <nav>
+            <details className="menu">
+              <summary aria-label="Menu">Menu</summary>
+              <nav>
               <a href="/check">Config checker</a>
               <a href="/allowedips">AllowedIPs</a>
               <a href="/qr">QR code</a>
@@ -35,7 +37,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   <a className="btn sm" href="/signup" style={{ marginLeft: 18 }}>Start free</a>
                 </>
               )}
-            </nav>
+              </nav>
+            </details>
           </header>
           <main>{children}</main>
           <footer>

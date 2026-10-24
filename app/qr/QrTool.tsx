@@ -39,12 +39,14 @@ export function QrTool() {
   }
 
   return (
-    <div className="checker">
+    <div className="checker toolpanel">
       <div className="tool2">
         <div>
-          <p className="privacy"><span aria-hidden>●</span> Converted in this page. The file and its private key are not uploaded.</p>
+          <p className="step"><b>1</b>Client configuration</p>
+          <p className="privacy"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" /></svg>
+            <span>The QR code is drawn by JavaScript in this page. The file and its private key are never sent to our server: only an anonymous counter of conversions is.</span></p>
           <label>
-            Client configuration (.conf)
+            Paste the .conf (the file for the phone, not the server&apos;s wg0.conf)
             <textarea rows={12} value={text} onChange={(e) => setText(e.target.value)} spellCheck={false} autoComplete="off"
               placeholder={"[Interface]\nPrivateKey = ...\nAddress = 10.8.0.2/32\nDNS = 1.1.1.1\n\n[Peer]\nPublicKey = ...\nAllowedIPs = 0.0.0.0/0, ::/0\nEndpoint = vpn.example.com:51820"} />
           </label>
@@ -56,6 +58,8 @@ export function QrTool() {
             </label>
           </div>
         </div>
+        <div>
+        <p className="step"><b>2</b>Scan it</p>
         <div className="qr-slot" aria-live="polite">
           {qr ? (
             <div>
@@ -73,6 +77,7 @@ export function QrTool() {
               <p style={{ margin: "12px 0 0" }}>The code for the phone appears here.</p>
             </div>
           )}
+        </div>
         </div>
       </div>
 

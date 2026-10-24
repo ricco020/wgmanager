@@ -37,12 +37,12 @@ pre { background: #0a0d12; border: 1px solid var(--line); border-radius: 6px; pa
 @media (max-width: 800px) { .hero { grid-template-columns: 1fr; } }
 .hero .kicker { color: var(--amber); text-transform: uppercase; letter-spacing: 0.14em; font-size: 12px; margin-bottom: 14px; }
 .hero p.lead { color: var(--muted); font-size: 1.05rem; max-width: 52ch; }
-.btn { display: inline-block; font-family: var(--display); font-weight: 700; padding: 12px 20px; border-radius: 6px; border: 1px solid var(--amber); background: var(--amber); color: var(--amber-ink); cursor: pointer; font-size: 15px; }
+.btn { color: #1a1200 !important; display: inline-block; font-family: var(--display); font-weight: 700; padding: 12px 20px; border-radius: 6px; border: 1px solid var(--amber); background: var(--amber); color: var(--amber-ink); cursor: pointer; font-size: 15px; }
 .btn:hover { background: #ffc24d; text-decoration: none; }
-.btn.ghost { background: transparent; color: var(--amber); }
+.btn.ghost { background: transparent; color: var(--amber) !important; }
 .btn.ghost:hover { background: rgba(255,178,36,0.1); }
 .btn.sm { padding: 7px 12px; font-size: 13px; }
-.btn.danger { border-color: var(--red); background: transparent; color: var(--red); }
+.btn.danger { border-color: var(--red); background: transparent; color: var(--red) !important; }
 .btn.danger:hover { background: rgba(248,81,73,0.12); }
 .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 22px; }
 .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 40px 0; }
@@ -97,12 +97,23 @@ dl.checks dd { margin: 4px 0 0; font-size: 14px; }
 textarea { font-family: var(--mono); font-size: 14px; padding: 10px 12px; background: #0a0d12; color: var(--text); border: 1px solid var(--line); border-radius: 6px; width: 100%; }
 textarea::placeholder { color: #7d8a9a; }
 .nav .brand { white-space: nowrap; }
+.menu summary { display: none; }
+.menu > nav { display: flex; align-items: center; }
 @media (max-width: 760px) {
-  .nav { flex-wrap: wrap; gap: 10px; padding: 14px 0 10px; }
-  .nav nav { display: flex; align-items: center; gap: 16px; width: 100%; overflow-x: auto; white-space: nowrap; padding-bottom: 4px; font-size: 14px; }
-  .nav nav a, .nav nav form button { margin-left: 0 !important; }
+  .nav { position: relative; padding: 12px 0; }
+  .menu summary { display: grid; place-items: center; list-style: none; min-width: 64px; height: 44px; padding: 0 14px; border: 1px solid var(--line); border-radius: 8px; color: var(--text); cursor: pointer; font-weight: 600; }
+  .menu summary::-webkit-details-marker { display: none; }
+  .menu[open] summary { border-color: var(--amber); }
+  .menu > nav { position: absolute; right: 0; top: 64px; z-index: 20; flex-direction: column; align-items: stretch; gap: 4px; min-width: 220px; padding: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+  .menu > nav a, .menu > nav form button { margin-left: 0 !important; padding: 10px 12px; display: block; text-align: left; }
+  .menu > nav form { display: block !important; }
+  .qr-slot { min-height: 140px; }
 }
 .tool2 { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; align-items: start; }
 @media (max-width: 860px) { .tool2 { grid-template-columns: 1fr; } }
 .qr-slot { min-height: 320px; display: grid; place-items: center; text-align: center; border: 1px dashed var(--line); border-radius: 10px; padding: 18px; color: var(--muted); font-size: 14px; }
-.privacy { display: flex; gap: 8px; align-items: center; font-size: 14px; color: var(--green); margin: 0 0 8px; }
+.privacy { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; color: #dce5ee; background: #172820; border: 1px solid #2c4a3a; border-radius: 8px; padding: 10px 12px; margin: 0 0 14px; }
+.privacy svg { flex: none; color: var(--green); margin-top: 2px; }
+.toolpanel { background: #131c24; border: 1px solid #33414f; border-radius: 12px; padding: 22px; }
+.step { font-family: var(--display); font-weight: 700; color: var(--text); font-size: 15px; margin: 0 0 8px; }
+.step b { color: var(--amber); margin-right: 6px; }
