@@ -16,13 +16,11 @@ export default async function QrPage({ searchParams }: { searchParams: Promise<{
   await recordHit("/qr", ref);
   return (
     <>
-      <section style={{ padding: "48px 0 20px" }}>
+      <section style={{ padding: "36px 0 16px" }}>
         <div className="fade" style={{ color: "var(--amber)", textTransform: "uppercase", letterSpacing: "0.14em", fontSize: 12, marginBottom: 14 }}>Free tool, no account</div>
         <h1 className="fade d1">WireGuard config to QR code</h1>
         <p className="fade d2 muted" style={{ maxWidth: "62ch", fontSize: "1.05rem" }}>
-          The WireGuard apps for Android and iOS import a tunnel by scanning a QR code that contains the whole client file.
-          Paste the client <code>.conf</code> (or open the file), and the code appears below. The conversion runs in this page:
-          the file and its private key are not sent anywhere.
+          Paste a client <code>.conf</code> and scan the result with the WireGuard app on Android or iOS.
         </p>
       </section>
 
