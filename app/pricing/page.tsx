@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { currentUser } from "@/lib/auth";
-import { FREE_LIMITS, PRO_PRICE_EUR } from "@/lib/site";
+import { FREE_LIMITS, PRO_PRICE_EUR, SITE } from "@/lib/site";
 import { isPro, stripeReady } from "@/lib/stripe";
 import { recordHit } from "@/lib/stats";
 
-export const metadata: Metadata = { title: "Pricing" };
+export const metadata: Metadata = { title: "Pricing", alternates: { canonical: `${SITE}/pricing` } };
 export const dynamic = "force-dynamic";
 
 export default async function Pricing({ searchParams }: { searchParams: Promise<{ error?: string }> }) {

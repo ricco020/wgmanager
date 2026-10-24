@@ -1,5 +1,9 @@
-import { FREE_LIMITS, PRO_PRICE_EUR } from "@/lib/site";
+import type { Metadata } from "next";
+import { FREE_LIMITS, PRO_PRICE_EUR, SITE } from "@/lib/site";
 import { recordHit } from "@/lib/stats";
+
+// ?ref= variants of / (vpnsmith boxes) must fold into one URL.
+export const metadata: Metadata = { alternates: { canonical: `${SITE}/` } };
 
 export const dynamic = "force-dynamic";
 
