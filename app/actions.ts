@@ -8,12 +8,12 @@ import { COOKIE, COOKIE_OPTIONS, currentUser, hashPassword, passwordAcceptable, 
 import { encrypt, wgKeypair, wgPresharedKey, wgPublicKeyOf } from "@/lib/crypto";
 import { db } from "@/lib/db";
 import { FREE_LIMITS } from "@/lib/site";
-import { cleanRef } from "@/lib/stats";
+import { cleanRef, peerBucket, recordHit } from "@/lib/stats";
 import { isPro } from "@/lib/stripe";
 import { nextFreeIp, parseCidr, parseServerConf, validDns, validEndpoint } from "@/lib/wg";
 
 /** React 19 resets a form after its action completes, so an error carries the typed values back for defaultValue. */
-export type ActionState = { error?: string; values?: Record<string, string> } | undefined;
+export type ActionState = { error?: string; values?: Record<string, string>; paywall?: number } | undefined;
 
 function fail(form: FormData, error: string, fields: string[]): ActionState {
   const values: Record<string, string> = {};
@@ -82,6 +82,7 @@ export async function createServer(_prev: ActionState, form: FormData): Promise<
   const server = await db.server.create({
     data: { userId: user.id, name, endpoint, port, subnet, dns, mtu, publicKey: kp.publicKey, privateKeyEnc: encrypt(kp.privateKey) },
   });
+  await recordHit("/dashboard:create-ok");
   redirect(`/dashboard/servers/${server.id}`);
 }
 
@@ -101,7 +102,10 @@ export async function importServer(_prev: ActionState, form: FormData): Promise<
   if (!validDns(dns)) return fail(form, "DNS must be one or more addresses separated by commas.", IMPORT_FIELDS);
   if (!text.trim()) return fail(form, "Paste the content of your server wg0.conf.", IMPORT_FIELDS);
   const { conf, error } = parseServerConf(text);
-  if (!conf) return fail(form, error ?? "Could not read this file.", IMPORT_FIELDS);
+  if (!conf) {
+    await recordHit("/dashboard:import-error");
+    return fail(form, error ?? "Could not read this file.", IMPORT_FIELDS);
+  }
   const pro = await isPro(user);
   const count = await db.server.count({ where: { userId: user.id } });
   if (count >= FREE_LIMITS.servers && !pro) {
@@ -110,7 +114,9 @@ export async function importServer(_prev: ActionState, form: FormData): Promise<
   let peers = conf.peers;
   if (peers.length > FREE_LIMITS.peers && !pro) {
     if (!onlyFirst) {
-      return fail(form, `This file has ${peers.length} peers; the free plan includes ${FREE_LIMITS.peers}. Upgrade to Pro (9 EUR/month) to import all of them, or tick "import only the first ${FREE_LIMITS.peers} peers".`, IMPORT_FIELDS);
+      // The moment the free plan is too small for a real server: counted, and answered with a checkout button.
+      await recordHit(`/dashboard:paywall-import-${peerBucket(peers.length)}`);
+      return { ...fail(form, `This file has ${peers.length} peers; the free plan includes ${FREE_LIMITS.peers}. Upgrade to Pro (9 EUR/month) to import all of them, or tick "import only the first ${FREE_LIMITS.peers} peers".`, IMPORT_FIELDS), paywall: peers.length };
     }
     peers = peers.slice(0, FREE_LIMITS.peers);
   }
@@ -123,6 +129,7 @@ export async function importServer(_prev: ActionState, form: FormData): Promise<
       peers: { create: peers.map((p) => ({ name: p.name, ip: p.ip, publicKey: p.publicKey, privateKeyEnc: null, presharedKeyEnc: p.presharedKey ? encrypt(p.presharedKey) : null })) },
     },
   });
+  await recordHit(`/dashboard:import-ok-${peerBucket(peers.length)}`);
   redirect(`/dashboard/servers/${server.id}?imported=${peers.length}`);
 }
 

@@ -27,3 +27,11 @@ export async function recordHit(path: string, ref?: string | null): Promise<void
     console.error("hit", (e as Error).message);
   }
 }
+
+/** Peer count bucket used by every counter: tells how many visitors already run more peers than the free plan holds. */
+export function peerBucket(n: number): string {
+  if (!Number.isFinite(n) || n < 1) return "p0";
+  if (n <= 3) return "p1-3";
+  if (n <= 10) return "p4-10";
+  return "p11+";
+}

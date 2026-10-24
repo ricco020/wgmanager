@@ -7,6 +7,7 @@ import { isPro } from "@/lib/stripe";
 import { ServerForm } from "./ServerForm";
 import { ImportForm } from "./ImportForm";
 import { deleteServer } from "../actions";
+import { recordHit } from "@/lib/stats";
 
 export const metadata: Metadata = { title: "Dashboard" };
 export const dynamic = "force-dynamic";
@@ -17,6 +18,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   const pro = await isPro(user);
   const { welcome } = await searchParams;
   const servers = await db.server.findMany({ where: { userId: user.id }, orderBy: { createdAt: "asc" }, include: { _count: { select: { peers: true } } } });
+  await recordHit(servers.length ? "/dashboard" : "/dashboard:empty");
   const canAdd = pro || servers.length < FREE_LIMITS.servers;
   return (
     <>

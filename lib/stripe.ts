@@ -17,7 +17,7 @@ export function stripeReady(): boolean {
 
 /** Creates a Checkout session for the Pro subscription. The user's email is pre-filled;
  *  metadata[projet] isolates this product from the other products on the same Stripe account. */
-export async function createCheckout(user: User): Promise<string | null> {
+export async function createCheckout(user: User, next?: "import"): Promise<string | null> {
   const sk = process.env.STRIPE_SECRET_KEY;
   const price = process.env.STRIPE_PRICE_PRO;
   if (!sk || !price) return null;
@@ -29,8 +29,8 @@ export async function createCheckout(user: User): Promise<string | null> {
     "metadata[userId]": user.id,
     "subscription_data[metadata][projet]": PROJECT,
     "subscription_data[metadata][userId]": user.id,
-    success_url: `${SITE}/api/billing/return?s={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${SITE}/pricing`,
+    success_url: `${SITE}/api/billing/return?s={CHECKOUT_SESSION_ID}${next ? `&next=${next}` : ""}`,
+    cancel_url: next === "import" ? `${SITE}/dashboard#import` : `${SITE}/pricing`,
     "consent_collection[terms_of_service]": "required",
     "custom_text[terms_of_service_acceptance][message]":
       `I agree to the [terms of sale](${SITE}/terms) and ask for the service to start now.`,
