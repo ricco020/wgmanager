@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
-import { HANDOFF_KEY } from "@/lib/check";
+import { EP_KEY, HANDOFF_KEY } from "@/lib/check";
 import { importServer, type ActionState } from "../actions";
 import { FREE_LIMITS } from "@/lib/site";
 
@@ -9,6 +9,7 @@ export function ImportForm({ pro }: { pro: boolean }) {
   const [state, action, pending] = useActionState<ActionState, FormData>(importServer, undefined);
   const v = state?.values ?? {};
   const conf = useRef<HTMLTextAreaElement>(null);
+  const ep = useRef<HTMLInputElement>(null);
   const [fromCheck, setFromCheck] = useState(false);
   // A file checked on /check is carried over once, so the visitor does not paste it twice.
   useEffect(() => {
@@ -17,6 +18,9 @@ export function ImportForm({ pro }: { pro: boolean }) {
       if (t && conf.current && !conf.current.value) {
         conf.current.value = t;
         sessionStorage.removeItem(HANDOFF_KEY);
+        const e = sessionStorage.getItem(EP_KEY);
+        if (e && ep.current && !ep.current.value) ep.current.value = e.replace(/:\d+$/, "");
+        sessionStorage.removeItem(EP_KEY);
         setFromCheck(true);
         conf.current.closest(".panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
       }
@@ -26,7 +30,7 @@ export function ImportForm({ pro }: { pro: boolean }) {
     <form className="stack" action={action} style={{ maxWidth: 620 }}>
       <div className="row">
         <label>Name<input name="name" placeholder="Existing VPS" maxLength={60} defaultValue={v.name} /></label>
-        <label>Public endpoint (hostname or IP)<input name="endpoint" placeholder="vpn.example.com" required defaultValue={v.endpoint} /></label>
+        <label>Public endpoint (hostname or IP)<input ref={ep} name="endpoint" placeholder="vpn.example.com" required defaultValue={v.endpoint} /></label>
       </div>
       <label>DNS pushed to new clients<input name="dns" defaultValue={v.dns ?? "1.1.1.1"} /></label>
       <label>Server wg0.conf (the file in /etc/wireguard on the server, with its [Interface] PrivateKey and [Peer] blocks)

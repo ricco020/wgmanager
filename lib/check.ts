@@ -4,6 +4,8 @@
 
 /** sessionStorage key carrying a checked file from /check to the dashboard import form. */
 export const HANDOFF_KEY = "wg_check_conf";
+/** sessionStorage key carrying the server's public endpoint, when the page that sent the file knew it. */
+export const EP_KEY = "wg_check_ep";
 
 export type Level = "error" | "warn" | "info";
 export type Finding = { level: Level; where: string; line?: number; msg: string };

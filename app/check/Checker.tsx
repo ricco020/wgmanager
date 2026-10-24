@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { checkConfig, HANDOFF_KEY, type CheckResult } from "@/lib/check";
+import { useEffect, useRef, useState } from "react";
+import { checkConfig, EP_KEY, HANDOFF_KEY, type CheckResult } from "@/lib/check";
 import { FREE_LIMITS, PRO_PRICE_EUR } from "@/lib/site";
 import { AddPeer } from "./AddPeer";
 
@@ -26,16 +26,38 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
   const ta = useRef<HTMLTextAreaElement>(null);
   const [res, setRes] = useState<CheckResult | null>(null);
   const [text, setText] = useState("");
+  const [endpoint, setEndpoint] = useState("");
+  const [fromGen, setFromGen] = useState(false);
 
-  function run() {
+  function run(source = "") {
     const t = ta.current?.value ?? "";
     if (!t.trim()) return;
     const r = checkConfig(t);
     setRes(r);
     setText(t);
     // Usage counter only: the file content is not part of the request.
-    fetch(`/api/check-run?kind=${r.kind}&peers=${r.peers}`, { method: "POST", keepalive: true }).catch(() => {});
+    fetch(`/api/check-run?kind=${r.kind}&peers=${r.peers}${source ? `&from=${source}` : ""}`, { method: "POST", keepalive: true }).catch(() => {});
   }
+
+  // A wg0.conf sent by the VPNSmith generator travels in the URL fragment (#conf=<base64url>&ep=<host:port>):
+  // browsers never send a fragment to the server, and it is erased from the address bar as soon as it is read.
+  useEffect(() => {
+    const h = new URLSearchParams(window.location.hash.slice(1));
+    const b64 = h.get("conf");
+    if (!b64 || !ta.current) return;
+    history.replaceState(null, "", window.location.pathname + window.location.search);
+    try {
+      const bin = atob(b64.replace(/-/g, "+").replace(/_/g, "/"));
+      const conf = new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
+      if (!conf.includes("[Interface]")) return;
+      ta.current.value = conf;
+      const ep = (h.get("ep") ?? "").trim().slice(0, 253);
+      if (ep) { setEndpoint(ep); try { sessionStorage.setItem(EP_KEY, ep); } catch { /* storage unavailable */ } }
+      setFromGen(true);
+      run("gen");
+    } catch { /* malformed fragment: the visitor pastes the file */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function sendToImport(extra = "") {
     try { sessionStorage.setItem(HANDOFF_KEY, text.replace(/\s*$/, "\n") + extra); } catch { /* private mode: the user pastes again */ }
@@ -48,11 +70,12 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
 
   return (
     <div className="checker">
+      {fromGen && <div className="ok" style={{ marginBottom: 12 }}>The wg0.conf you just generated on VPNSmith is loaded below. It was read from the link in your browser and has not been uploaded.</div>}
       <label>Paste a wg0.conf (server) or a client .conf
         <textarea ref={ta} rows={14} spellCheck={false} autoComplete="off" placeholder={"[Interface]\nPrivateKey = ...\nAddress = 10.8.0.2/32\n\n[Peer]\nPublicKey = ...\nEndpoint = vpn.example.com:51820\nAllowedIPs = 0.0.0.0/0, ::/0"} style={{ fontSize: 13 }} />
       </label>
       <p style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center", margin: "12px 0" }}>
-        <button className="btn" type="button" onClick={run}>Check this config</button>
+        <button className="btn" type="button" onClick={() => run()}>Check this config</button>
         <button className="btn ghost sm" type="button" onClick={() => { if (ta.current) ta.current.value = SAMPLE; run(); }}>Try a broken example</button>
         <span className="muted" style={{ fontSize: 13 }}>Runs in your browser. The file, and its keys, are never uploaded.</span>
       </p>
@@ -92,7 +115,7 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
               <button className="btn" type="button" onClick={() => sendToImport()}>Import this wg0.conf</button>
             </div>
           )}
-          {res.kind === "server" && <AddPeer key={text} text={text} peers={res.peers} signedIn={signedIn} onImport={sendToImport} />}
+          {res.kind === "server" && <AddPeer key={text} text={text} peers={res.peers} signedIn={signedIn} onImport={sendToImport} defaultEndpoint={endpoint.replace(/:\d+$/, "")} />}
           {res.kind === "client" && (
             <div className="handoff">
               <h3>Issue client files that are right the first time</h3>

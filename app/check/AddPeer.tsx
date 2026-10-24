@@ -79,9 +79,9 @@ async function newKeyPair(): Promise<{ priv: string; pub: string }> {
 
 type Out = { block: string; client: string; qr: string; ip: string; name: string };
 
-export function AddPeer({ text, peers, signedIn, onImport }: { text: string; peers: number; signedIn: boolean; onImport: (extra: string) => void }) {
+export function AddPeer({ text, peers, signedIn, onImport, defaultEndpoint = "" }: { text: string; peers: number; signedIn: boolean; onImport: (extra: string) => void; defaultEndpoint?: string }) {
   const [name, setName] = useState("");
-  const [endpoint, setEndpoint] = useState("");
+  const [endpoint, setEndpoint] = useState(defaultEndpoint);
   const [full, setFull] = useState(true);
   const [out, setOut] = useState<Out | null>(null);
   const [err, setErr] = useState("");

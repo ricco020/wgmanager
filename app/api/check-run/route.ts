@@ -13,6 +13,7 @@ export async function POST(req: Request) {
   const q = new URL(req.url).searchParams;
   const kind = q.get("kind");
   const peers = q.has("peers") ? `-${bucket(Number(q.get("peers")))}` : "";
+  if (q.get("from") === "gen") await recordHit(`/check:from-gen${peers}`);
   if (kind === "import") await recordHit(`/check:import${peers}`);
   else if (kind === "allowedips") await recordHit("/allowedips:run");
   else if (kind === "addpeer") await recordHit(`/check:addpeer${peers}`);
