@@ -177,6 +177,7 @@ export function checkConfig(text: string): CheckResult {
     const dns = get(iface, "dns");
     if (dns.length && kind === "server") add("warn", W, "DNS on a server: wg-quick rewrites the server's own resolver when the tunnel comes up. DNS belongs in client files.", dns[0].line);
     for (const d of dns) for (const c of list(d.value)) if (!v4(c, 32) && !v6ok(c) && !/^[a-zA-Z0-9.-]+$/.test(c)) add("error", W, `DNS entry "${c}" is neither an IP nor a search domain.`, d.line);
+    if (dns.length) add("info", W, "On Linux, wg-quick applies this DNS line through resolvconf. If wg-quick stops with \"resolvconf: command not found\", first run \"systemctl is-active systemd-resolved\": if it is active, install its shim (apt install systemd-resolvconf on Debian and Ubuntu) rather than a second manager; otherwise install openresolv. Or drop the DNS line if this machine should keep its own resolver.", dns[0].line);
 
     const sc = one(iface, "saveconfig");
     if (sc && /^true$/i.test(sc.value)) add("warn", W, "SaveConfig = true: wg-quick overwrites this file when the interface goes down. Edits made by hand while it runs are lost.", sc.line);
