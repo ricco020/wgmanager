@@ -27,7 +27,29 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         <span className={pro ? "tag pro" : "tag"}>{pro ? "Pro" : `Free: ${FREE_LIMITS.servers} server, ${FREE_LIMITS.peers} peers`}</span>
       </div>
       {welcome === "pro" && <p className="ok">Pro is active. Limits are lifted on this account.</p>}
-      {servers.length === 0 && <p className="muted">No server yet. Create the first one below: you need its public hostname or IP and the UDP port you will open.</p>}
+      {servers.length === 0 && (
+        <div className="panel" style={{ marginTop: 18 }}>
+          <h2>Start here: which case are you in?</h2>
+          <ol className="stack" style={{ paddingLeft: 20 }}>
+            <li>
+              <strong>WireGuard already runs on a server.</strong> <a href="#import">Paste its wg0.conf below</a>: keys and peer IPs stay as
+              they are, and you can add the next device from here.
+            </li>
+            <li>
+              <strong>You have a server (VPS, Raspberry Pi, home box) but no WireGuard yet.</strong> <a href="#new">Create it below</a> with its
+              public hostname or IP; the next page gives the wg0.conf and the four commands that install it.
+            </li>
+            <li>
+              <strong>No server yet.</strong> WireGuard needs a machine with a public IP that stays on. A small Linux VPS is enough for a
+              household or a small team: WireGuard runs in the kernel and a single vCPU is usually
+              enough for that traffic. Contabo sells a VPS with WireGuard preinstalled.{" "}
+              <a className="btn sm" href="/out/vps?from=empty" rel="sponsored nofollow">See the Contabo WireGuard VPS</a>{" "}
+              <span className="muted">(affiliate link: VPNSmith may earn a commission, the price is the same for you). Then come back and
+              create the server here with its IP.</span>
+            </li>
+          </ol>
+        </div>
+      )}
       {servers.length > 0 && (
         <table>
           <thead><tr><th>Name</th><th>Endpoint</th><th>Subnet</th><th>Peers</th><th></th></tr></thead>
@@ -46,7 +68,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
           </tbody>
         </table>
       )}
-      <div className="panel" style={{ marginTop: 30 }}>
+      <div className="panel" id="new" style={{ marginTop: 30 }}>
         <h2>New server</h2>
         {canAdd ? <ServerForm /> : <p className="muted">The free plan includes {FREE_LIMITS.servers} server. <a href="/pricing">Upgrade to Pro</a> for unlimited servers.</p>}
       </div>

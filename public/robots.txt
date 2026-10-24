@@ -2,5 +2,6 @@ User-agent: *
 Allow: /
 Disallow: /dashboard
 Disallow: /api
+Disallow: /out
 
 Sitemap: https://wg.vpnsmith.com/sitemap.xml
