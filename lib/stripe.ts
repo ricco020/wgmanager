@@ -34,7 +34,6 @@ export async function createCheckout(user: User, next?: "import"): Promise<strin
     "consent_collection[terms_of_service]": "required",
     "custom_text[terms_of_service_acceptance][message]":
       `I agree to the [terms of sale](${SITE}/terms) and ask for the service to start now.`,
-    allow_promotion_codes: "true",
   };
   if (user.stripeCustomerId) params.customer = user.stripeCustomerId;
   else params.customer_email = user.email;
