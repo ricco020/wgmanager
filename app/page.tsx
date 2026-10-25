@@ -27,21 +27,18 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
           </p>
           <p className="muted fade d3">No card for the free plan. Pro: unlimited servers and peers, {PRO_PRICE_EUR} EUR/month, cancel anytime.</p>
         </div>
-        <div className="terminal fade d2">
-          <div className="bar"><i /><i /><i /></div>
-          <div><span className="c"># laptop.conf, downloaded from the dashboard</span></div>
-          <div><span className="k">[Interface]</span></div>
-          <div>PrivateKey = <span className="c">(stored encrypted, decrypted only when you download)</span></div>
-          <div>Address = 10.8.0.2/24</div>
-          <div>DNS = 1.1.1.1</div>
-          <br />
-          <div><span className="k">[Peer]</span></div>
-          <div>PublicKey = <span className="c">server public key</span></div>
-          <div>PresharedKey = <span className="c">per-peer PSK</span></div>
-          <div>Endpoint = vpn.example.com:51820</div>
-          <div>AllowedIPs = 0.0.0.0/0, ::/0</div>
-          <div>PersistentKeepalive = 25</div>
-        </div>
+        <figure className="fade d2" style={{ margin: 0 }}>
+          <img
+            src="/dashboard-demo.webp"
+            width={1005}
+            height={876}
+            alt="WireGuard Manager server page: endpoint vpn.example.com:51820, server address 10.8.0.1/24, download buttons for wg0.conf and a zip of peer files, then two peers, Laptop 10.8.0.2 and iPhone 10.8.0.3, each with its public key, Download .conf, Rotate keys, Delete and a QR code"
+            style={{ width: "100%", height: "auto", display: "block", border: "1px solid #2B3540", borderRadius: 12 }}
+          />
+          <figcaption className="muted" style={{ fontSize: 13, marginTop: 8 }}>
+            Real screenshot of a demo server (vpn.example.com, demo account deleted afterwards): addresses allocated in order, one QR code per device.
+          </figcaption>
+        </figure>
       </section>
 
       <section className="grid3">
