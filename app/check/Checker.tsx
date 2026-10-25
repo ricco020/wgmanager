@@ -106,13 +106,13 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
             <div className="handoff">
               <h3>This Endpoint is a private address</h3>
               <p className="muted">
-                Behind a home router or a carrier-grade NAT (100.64.x.x), this tunnel only works from inside that network.
-                Port forwarding fixes the first case; the second needs a server with a public IPv4.
-                A small VPS gives you one, with UDP open and nothing to forward.
+                Free fix first: behind a home router, forward the UDP port (51820 by default) on the router to the WireGuard machine and put your public IP
+                or a dynamic DNS name in Endpoint. Behind a carrier-grade NAT (an address in 100.64.x.x, common on mobile and some fiber
+                plans), port forwarding is impossible: the server needs a public IPv4, from your provider or from a small VPS.
               </p>
-              <p>
-                <a className="btn sm" href="/out/vps?from=check-private" rel="sponsored nofollow">See the Contabo WireGuard VPS</a>{" "}
-                <span className="muted" style={{ fontSize: 13 }}>Affiliate link: VPNSmith may earn a commission, the price is the same for you.</span>
+              <p className="muted" style={{ fontSize: 14 }}>
+                Affiliate link, VPNSmith may earn a commission and the price is the same for you:{" "}
+                <a href="/out/vps?from=check-private" rel="sponsored nofollow">Contabo VPS with WireGuard preinstalled</a>.
               </p>
             </div>
           )}
