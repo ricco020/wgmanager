@@ -17,15 +17,15 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
           <div className="kicker fade">Hosted WireGuard configuration manager</div>
           <h1 className="fade d1">Every server, every peer, one dashboard.</h1>
           <p className="lead fade d2">
-            Stop juggling wg0.conf files by hand. Add a server, add peers, and get the server config,
-            each client .conf and its QR code. IP addresses are allocated for you, keys are generated
-            server-side with X25519 and stored encrypted. Rotate a peer in one click.
+            Stop juggling wg0.conf files by hand: add your servers and devices once, then download each config or scan its QR code.
+            Addresses are allocated for you and keys are stored encrypted.
           </p>
           <p className="fade d3">
             <a className="btn" href="/signup">Start free: {FREE_LIMITS.servers} server, {FREE_LIMITS.peers} peers</a>
             {" "}
-            <a className="btn ghost" href="/pricing">Pro is {PRO_PRICE_EUR} EUR/month</a>
+            <a className="btn ghost" href="/pricing">Compare plans</a>
           </p>
+          <p className="muted fade d3">No card for the free plan. Pro: unlimited servers and peers, {PRO_PRICE_EUR} EUR/month, cancel anytime.</p>
         </div>
         <div className="terminal fade d2">
           <div className="bar"><i /><i /><i /></div>
@@ -69,9 +69,12 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
           <li>Already running WireGuard? Paste your existing <code>wg0.conf</code>: keys and peers are imported as they are, nothing changes on the devices. Not sure the file is clean? Run it through the free <a href="/check">config checker</a> first.</li>
         </ol>
         <p className="muted">
-          Need a server first? A small VPS with a public IPv4 is enough. The free
+          Need a server first? WireGuard needs a machine with a public IP that stays on; a small Linux VPS is enough for a household
+          or a small team. Contabo sells a VPS with WireGuard preinstalled:{" "}
+          <a href="/out/vps?from=home" rel="sponsored nofollow">see the Contabo WireGuard VPS</a>{" "}
+          (affiliate link: VPNSmith may earn a commission, the price is the same for you). To compare the usual options, the free
           {" "}<a href="https://www.vpnsmith.com/en/tools/self-hosted-vpn-cost-calculator" rel="noopener">self-hosted VPN cost calculator</a>
-          {" "}on VPNSmith compares the usual options.
+          {" "}on VPNSmith lists them.
         </p>
       </section>
 
