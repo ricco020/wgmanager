@@ -102,6 +102,20 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
             </ul>
           )}
 
+          {res.privateEndpoint && (
+            <div className="handoff">
+              <h3>This Endpoint is a private address</h3>
+              <p className="muted">
+                Behind a home router or a carrier-grade NAT (100.64.x.x), this tunnel only works from inside that network.
+                Port forwarding fixes the first case; the second needs a server with a public IPv4.
+                A small VPS gives you one, with UDP open and nothing to forward.
+              </p>
+              <p>
+                <a className="btn sm" href="/out/vps?from=check-private" rel="sponsored nofollow">See the Contabo WireGuard VPS</a>{" "}
+                <span className="muted" style={{ fontSize: 13 }}>Affiliate link: VPNSmith may earn a commission, the price is the same for you.</span>
+              </p>
+            </div>
+          )}
           {res.kind === "server" && res.peers > 0 && (
             <div className="handoff">
               <h3>Stop editing this file by hand</h3>

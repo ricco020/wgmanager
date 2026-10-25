@@ -13,6 +13,8 @@ export type CheckResult = {
   kind: "server" | "client" | "unknown";
   peers: number;
   findings: Finding[];
+  /** An Endpoint points at a LAN or CGNAT address: the tunnel cannot be reached from outside that network. */
+  privateEndpoint?: boolean;
 };
 
 const IFACE_KEYS = new Set(["privatekey", "listenport", "fwmark", "address", "dns", "mtu", "table", "preup", "postup", "predown", "postdown", "saveconfig"]);
@@ -82,6 +84,7 @@ type Section = { name: "interface" | "peer"; line: number; label: string; entrie
 
 export function checkConfig(text: string): CheckResult {
   const F: Finding[] = [];
+  let privEp = false;
   const add = (level: Level, where: string, msg: string, line?: number) => F.push({ level, where, msg, line });
   if (text.length > 200_000) return { kind: "unknown", peers: 0, findings: [{ level: "error", where: "File", msg: "File too large (200 KB max)." }] };
 
@@ -233,6 +236,7 @@ export function checkConfig(text: string): CheckResult {
         const port = Number(m[2]);
         if (port < 1 || port > 65535) add("error", W, `Endpoint port ${port} is out of range.`, ep.line);
         const ipn = ipInt(m[1]);
+        if (ipn !== null && isPrivate(ipn)) privEp = true;
         if (ipn !== null && isPrivate(ipn)) add("warn", W, `Endpoint ${m[1]} is a private address: this config only works from inside that network, not from mobile data or another Wi-Fi.`, ep.line);
       }
     } else if (kind === "client") add("error", W, "Endpoint is missing: a client without Endpoint can never start the handshake.", p.line);
@@ -259,5 +263,5 @@ export function checkConfig(text: string): CheckResult {
 
   const order: Record<Level, number> = { error: 0, warn: 1, info: 2 };
   F.sort((x, y) => order[x.level] - order[y.level] || (x.line ?? 0) - (y.line ?? 0));
-  return { kind, peers: peers.length, findings: F };
+  return { kind, peers: peers.length, findings: F, privateEndpoint: privEp };
 }
