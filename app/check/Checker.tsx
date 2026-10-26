@@ -82,7 +82,7 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
 
       {res && counts && (
         <div className="panel fade" aria-live="polite">
-          {res.kind !== "unknown" && <h3 style={{ margin: "0 0 10px" }}>{counts.error ? `${counts.error} error${counts.error === 1 ? "" : "s"} to fix in this file` : "Valid file. The connection itself is not tested here."}</h3>}
+          {res.kind !== "unknown" && <h3 style={{ margin: "0 0 10px" }}>{res.kind === "wg-easy" ? "wg-easy data file: wg-quick does not read it" : counts.error ? `${counts.error} error${counts.error === 1 ? "" : "s"} to fix in this file` : "Valid file. The connection itself is not tested here."}</h3>}
           <p style={{ marginBottom: 14 }}>
             <span className="tag">{res.kind === "unknown" ? "type unclear" : `${res.kind} config`}</span>{" "}
             <span className="tag">{res.peers} peer{res.peers === 1 ? "" : "s"}</span>{" "}
@@ -135,6 +135,20 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
                   VPNSmith may earn a commission; the price is the same for you.
                 </p>
               </div>
+            </div>
+          )}
+          {res.kind === "wg-easy" && res.peers > 0 && !counts.error && (
+            <div className="handoff">
+              <h3>Get a wg0.conf and one .conf per device from it</h3>
+              <p className="muted">
+                Import it into WireGuard Manager: the server key and the {res.peers} enabled client{res.peers === 1 ? "" : "s"} come across as they are, and because the file
+                holds each client&apos;s private key, every device&apos;s .conf and QR code are ready at once. Useful to stay on v14 (armv6 and armv7 hosts cannot run v15)
+                or to retire the panel and run plain wg-quick. Nothing changes on the server.
+                {res.peers > FREE_LIMITS.peers
+                  ? ` The free plan holds ${FREE_LIMITS.peers} peers; Pro (${PRO_PRICE_EUR} EUR/month) holds all ${res.peers}.`
+                  : ` Free for ${FREE_LIMITS.servers} server and ${FREE_LIMITS.peers} peers.`}
+              </p>
+              <button className="btn" type="button" onClick={() => sendToImport()}>Import this wg0.json</button>
             </div>
           )}
           {res.kind === "server" && res.peers > 0 && (

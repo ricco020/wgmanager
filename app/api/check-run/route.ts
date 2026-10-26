@@ -10,6 +10,7 @@ export async function POST(req: Request) {
   else if (kind === "allowedips") await recordHit("/allowedips:run");
   else if (kind === "qr" || kind === "qr-errors" || kind === "qr-server") await recordHit(`/qr:${kind === "qr" ? "run" : kind.slice(3)}`);
   else if (kind === "addpeer") await recordHit(`/check:addpeer${peers}`);
+  else if (kind === "wg-easy") await recordHit(`/check:run-wgeasy${peers}`);
   else await recordHit(kind === "server" || kind === "client" ? `/check:run-${kind}${kind === "server" ? peers : ""}` : "/check:run");
   return new Response(null, { status: 204 });
 }

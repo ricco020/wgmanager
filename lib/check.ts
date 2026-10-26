@@ -10,7 +10,7 @@ export const EP_KEY = "wg_check_ep";
 export type Level = "error" | "warn" | "info";
 export type Finding = { level: Level; where: string; line?: number; msg: string };
 export type CheckResult = {
-  kind: "server" | "client" | "unknown";
+  kind: "server" | "client" | "unknown" | "wg-easy";
   peers: number;
   findings: Finding[];
   /** An Endpoint points at a LAN or CGNAT address: the tunnel cannot be reached from outside that network. */
@@ -87,6 +87,7 @@ export function checkConfig(text: string): CheckResult {
   let privEp = false;
   const add = (level: Level, where: string, msg: string, line?: number) => F.push({ level, where, msg, line });
   if (text.length > 200_000) return { kind: "unknown", peers: 0, findings: [{ level: "error", where: "File", msg: "File too large (200 KB max)." }] };
+  if (text.trim().startsWith("{")) return checkWgEasyJson(text);
 
   const sections: Section[] = [];
   let pending = "";
@@ -264,4 +265,21 @@ export function checkConfig(text: string): CheckResult {
   const order: Record<Level, number> = { error: 0, warn: 1, info: 2 };
   F.sort((x, y) => order[x.level] - order[y.level] || (x.line ?? 0) - (y.line ?? 0));
   return { kind, peers: peers.length, findings: F, privateEndpoint: privEp };
+}
+
+/** wg-easy v14 keeps its state in /etc/wireguard/wg0.json (also what its Backup button downloads). wg-quick never reads
+ *  it, so it is recognised and described instead of being reported as a broken config. */
+function checkWgEasyJson(text: string): CheckResult {
+  let j: { server?: { privateKey?: unknown; address?: unknown }; clients?: Record<string, { enabled?: unknown }> };
+  try { j = JSON.parse(text); } catch {
+    return { kind: "unknown", peers: 0, findings: [{ level: "error", where: "File", msg: "This starts like JSON but is not valid JSON. A WireGuard config is an INI-style text file starting with [Interface]." }] };
+  }
+  if (!j?.server || typeof j.server.privateKey !== "string" || typeof j.clients !== "object") {
+    return { kind: "unknown", peers: 0, findings: [{ level: "error", where: "File", msg: "This is JSON, not a WireGuard config. A config is an INI-style text file starting with [Interface]." }] };
+  }
+  const all = Object.values(j.clients ?? {});
+  const on = all.filter((c) => c?.enabled !== false).length;
+  const F: Finding[] = [{ level: "info", where: "File", msg: `This is wg-easy's wg0.json (v14 and earlier, or its Backup download), not a file wg-quick reads. It holds the server key, ${all.length} client${all.length === 1 ? "" : "s"} (${on} enabled) with their own private keys, and their addresses.` }];
+  if (!/^[A-Za-z0-9+/]{43}=$/.test(j.server.privateKey)) F.push({ level: "error", where: "server", msg: "server.privateKey is not a valid WireGuard key." });
+  return { kind: "wg-easy", peers: on, findings: F };
 }
