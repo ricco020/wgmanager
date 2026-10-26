@@ -82,6 +82,7 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
 
       {res && counts && (
         <div className="panel fade" aria-live="polite">
+          {res.kind !== "unknown" && <h3 style={{ margin: "0 0 10px" }}>{counts.error ? `${counts.error} error${counts.error === 1 ? "" : "s"} to fix in this file` : "Valid file. The connection itself is not tested here."}</h3>}
           <p style={{ marginBottom: 14 }}>
             <span className="tag">{res.kind === "unknown" ? "type unclear" : `${res.kind} config`}</span>{" "}
             <span className="tag">{res.peers} peer{res.peers === 1 ? "" : "s"}</span>{" "}
@@ -89,7 +90,7 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
             <span className="tag">{counts.warn} warning{counts.warn === 1 ? "" : "s"}</span>
           </p>
           {res.findings.length === 0 ? (
-            <div className="ok"><b>Valid file.</b> Keys are well-formed, addresses and routes are consistent. The connection itself is not tested here.</div>
+            <div className="ok">Keys are well-formed, addresses and routes are consistent.</div>
           ) : (
             <ul className="findings">
               {res.findings.map((f, i) => (
