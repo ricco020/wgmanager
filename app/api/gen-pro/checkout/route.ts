@@ -11,8 +11,18 @@ const SRC_RE = /^[a-z0-9-]{1,40}$/;
  *  visitor to Stripe; the success URL brings them back to the generator with the session id. */
 export async function POST(req: Request) {
   const form = await req.formData().catch(() => null);
-  const locale = String(form?.get("locale") ?? "en");
-  const srcRaw = String(form?.get("src") ?? "gen").toLowerCase();
+  return start(String(form?.get("locale") ?? "en"), String(form?.get("src") ?? "gen"));
+}
+
+/** GET ?locale=&src= : plain link from the generator (vpnsmith's CSP allows form-action 'self' only,
+ *  so a cross-origin form POST is blocked by the browser). /api is disallowed in robots.txt. */
+export async function GET(req: Request) {
+  const q = new URL(req.url).searchParams;
+  return start(q.get("locale") ?? "en", q.get("src") ?? "gen");
+}
+
+async function start(locale: string, srcIn: string) {
+  const srcRaw = srcIn.toLowerCase();
   const src = SRC_RE.test(srcRaw) ? srcRaw : "gen";
   const back = genUrl(locale);
   const sk = process.env.STRIPE_SECRET_KEY;
