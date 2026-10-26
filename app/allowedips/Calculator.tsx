@@ -30,6 +30,12 @@ export function Calculator() {
 
   return (
     <div className="checker">
+      <p className="muted" style={{ margin: "0 0 8px", fontSize: 14 }}>Common scenarios: pick one to fill the second field and compute.</p>
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 18 }}>
+        {PRESETS.map(([label, v]) => (
+          <button key={label} className="btn ghost sm" type="button" style={{ minHeight: 44 }} onClick={() => { setExcluded(v); run(allowed, v); }}>{label}</button>
+        ))}
+      </div>
       <label>
         Allowed IPs (what the tunnel should carry)
         <input value={allowed} onChange={(e) => setAllowed(e.target.value)} spellCheck={false} autoComplete="off" />
@@ -42,11 +48,8 @@ export function Calculator() {
         VPN tunnel subnet, kept in the tunnel even if it falls in an excluded range (optional)
         <input value={keep} onChange={(e) => setKeep(e.target.value)} spellCheck={false} autoComplete="off" />
       </label>
-      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center", margin: "12px 0 18px" }}>
-        <button className="btn" type="button" onClick={() => run()}>Calculate AllowedIPs</button>
-        {PRESETS.map(([label, v]) => (
-          <button key={label} className="btn ghost sm" type="button" onClick={() => { setExcluded(v); run(allowed, v); }}>{label}</button>
-        ))}
+      <div style={{ margin: "16px 0 18px" }}>
+        <button className="btn" type="button" onClick={() => run()} style={{ minHeight: 44 }}>Calculate AllowedIPs</button>
       </div>
 
       {out && (

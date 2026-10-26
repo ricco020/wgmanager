@@ -20,29 +20,13 @@ export default async function AllowedIpsPage({ searchParams }: { searchParams: P
         <div className="fade" style={{ color: "var(--amber)", textTransform: "uppercase", letterSpacing: "0.14em", fontSize: 12, marginBottom: 14 }}>Free tool, no account</div>
         <h1 className="fade d1">WireGuard AllowedIPs calculator</h1>
         <p className="fade d2 muted" style={{ maxWidth: "62ch", fontSize: "1.05rem" }}>
-          You want everything through the VPN except the printer, the NAS or one address, and WireGuard has no
-          <code> ExcludedIPs</code> setting. The only way is to list every block you do want, which is tedious by hand.
-          Enter what the tunnel should carry and what must stay out; the calculator returns the AllowedIPs line.
+          WireGuard has no <code>ExcludedIPs</code> setting: to keep the printer, the NAS or one address out of the tunnel, you
+          list every block you do want. Enter what the tunnel carries and what stays out, and get the AllowedIPs line.
         </p>
       </section>
 
       <section className="fade d3" style={{ marginBottom: 40 }}>
         <Calculator />
-      </section>
-
-      <section className="panel" style={{ marginBottom: 24 }}>
-        <h2>Using a VPN provider&apos;s app rather than a .conf file?</h2>
-        <p className="muted">
-          This calculator is for raw WireGuard configs: the official WireGuard apps, wg-quick, routers. If the tunnel is a
-          commercial VPN running in its own app, look for a split tunneling setting before computing anything, since some apps
-          take the exclusion directly. Proton VPN&apos;s Windows and Android apps, for example, accept excluded IP addresses
-          and CIDR ranges (192.168.1.0/24) as well as excluded apps; on macOS and Linux its split tunneling works by app only,
-          and the feature needs a paid plan. Their own WireGuard .conf downloads still need the line computed above.
-        </p>
-        <p className="muted" style={{ fontSize: "0.9rem" }}>
-          Affiliate link, we may earn a commission at no cost to you:{" "}
-          <a href="/out/vpn?from=allowedips" rel="sponsored nofollow">Proton VPN plans</a>.
-        </p>
       </section>
 
       <section className="panel" style={{ marginBottom: 24 }}>
@@ -65,6 +49,20 @@ export default async function AllowedIpsPage({ searchParams }: { searchParams: P
           <div><dt>Per-app split tunnel</dt><dd className="muted">The Android app can exclude applications from the tunnel in the tunnel&apos;s settings, which needs no AllowedIPs change. This calculator works by address, for every client.</dd></div>
           <div><dt>Client side only</dt><dd className="muted">Change AllowedIPs in the client&apos;s <code>[Peer]</code> section. On the server, each peer&apos;s AllowedIPs stays its own tunnel address (a /32).</dd></div>
         </dl>
+      </section>
+
+      <section style={{ margin: "0 0 24px", padding: "14px 18px", borderLeft: "3px solid var(--line, #344251)" }}>
+        <p style={{ margin: 0 }}><strong>Using a VPN provider&apos;s app rather than a .conf file?</strong></p>
+        <p className="muted" style={{ margin: "6px 0" }}>
+          Check its split tunneling setting first: some apps take the exclusion directly. Proton VPN&apos;s Windows and Android
+          apps accept excluded IP addresses and CIDR ranges such as 192.168.1.0/24 (paid plans; on macOS and Linux by app only,
+          per <a href="https://protonvpn.com/support/protonvpn-split-tunneling" rel="noopener">Proton&apos;s guide</a>, checked
+          26 October 2026). Their WireGuard .conf downloads still need the line computed above.
+        </p>
+        <p className="muted" style={{ margin: 0, fontSize: 14 }}>
+          Affiliate link, commission possible at no extra cost to you:{" "}
+          <a href="/out/vpn?from=allowedips" rel="sponsored nofollow">Proton VPN plans</a>.
+        </p>
       </section>
 
       <section className="panel" style={{ marginBottom: 24 }}>
