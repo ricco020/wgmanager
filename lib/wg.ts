@@ -97,7 +97,7 @@ export function safeFileName(s: string): string {
 
 /* ---------- Import of an existing server wg0.conf ---------- */
 
-export type ParsedPeer = { name: string; publicKey: string; presharedKey: string | null; ip: string };
+export type ParsedPeer = { name: string; publicKey: string; presharedKey: string | null; ip: string; privateKey?: string };
 export type ParsedConf = {
   privateKey: string;
   subnet: string;
@@ -113,6 +113,7 @@ export type ParsedConf = {
  */
 export function parseServerConf(text: string): { conf?: ParsedConf; error?: string } {
   if (text.length > 200_000) return { error: "File too large (200 KB max)." };
+  if (text.trim().startsWith("{")) return parseWgEasyJson(text);
   const lines = text.replace(/\r/g, "").split("\n");
   let section: "" | "interface" | "peer" = "";
   const iface: Record<string, string> = {};
@@ -186,4 +187,45 @@ export function parseServerConf(text: string): { conf?: ParsedConf; error?: stri
     out.push({ name: (p.__name || `peer-${i + 1}`).slice(0, 60), publicKey: p.publickey, presharedKey: p.presharedkey || null, ip });
   }
   return { conf: { privateKey: iface.privatekey, subnet, port, mtu, peers: out } };
+}
+
+const KEY = /^[A-Za-z0-9+/]{43}=$/;
+
+/**
+ * wg-easy v14 and earlier keep the server in /etc/wireguard/wg0.json (wg-easy v15 moved to a database):
+ * { server: { privateKey, address }, clients: { <id>: { name, address, privateKey, publicKey, preSharedKey, enabled } } }.
+ * Unlike a wg0.conf, it holds each client's private key, so the clients' files stay downloadable after import.
+ * The listen port is not in the file (WG_PORT); 51820 is assumed and can be changed after import.
+ */
+export function parseWgEasyJson(text: string): { conf?: ParsedConf; error?: string } {
+  let j: { server?: Record<string, unknown>; clients?: Record<string, Record<string, unknown>> };
+  try { j = JSON.parse(text); } catch { return { error: "This looks like JSON but could not be read. Paste wg-easy's wg0.json as it is, or the server wg0.conf." }; }
+  const sv = j?.server;
+  if (!sv || typeof sv.privateKey !== "string") return { error: "No server.privateKey in this JSON. Paste wg-easy's /etc/wireguard/wg0.json (v14 or earlier)." };
+  if (!KEY.test(sv.privateKey)) return { error: "server.privateKey is not a valid WireGuard key." };
+  const sa = /^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?:\/(\d{1,2}))?$/.exec(String(sv.address ?? "").trim());
+  if (!sa) return { error: "server.address must be an IPv4 address, for example 10.8.0.1." };
+  // wg-easy builds every address as WG_DEFAULT_ADDRESS with x = 1..254, so the network is a /24.
+  const cidr = parseCidr(`${sa[1]}/${sa[2] ?? "24"}`);
+  if (!cidr) return { error: "server.address prefix must be between /16 and /30." };
+  const out: ParsedPeer[] = [];
+  const seenIp = new Set<string>();
+  const seenKey = new Set<string>();
+  const clients = Object.values(j.clients ?? {});
+  for (const [i, c] of clients.entries()) {
+    if (c?.enabled === false) continue; // disabled in wg-easy: not in its wg0.conf, so not imported either
+    const label = String(c?.name ?? "").trim().slice(0, 60) || `peer-${i + 1}`;
+    const pub = String(c?.publicKey ?? "");
+    if (!KEY.test(pub)) return { error: `Client "${label}": missing or invalid publicKey.` };
+    const ip = String(c?.address ?? "").trim().replace(/\/32$/, "");
+    if (!/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(ip)) return { error: `Client "${label}": address must be an IPv4 address.` };
+    if (seenIp.has(ip)) return { error: `Client "${label}": address ${ip} is used twice.` };
+    if (seenKey.has(pub)) return { error: `Client "${label}": publicKey is used twice.` };
+    const psk = typeof c?.preSharedKey === "string" && c.preSharedKey ? c.preSharedKey : null;
+    if (psk && !KEY.test(psk)) return { error: `Client "${label}": preSharedKey is not a valid key.` };
+    const priv = typeof c?.privateKey === "string" && KEY.test(c.privateKey) ? c.privateKey : undefined;
+    seenIp.add(ip); seenKey.add(pub);
+    out.push({ name: label, publicKey: pub, presharedKey: psk, ip, privateKey: priv });
+  }
+  return { conf: { privateKey: sv.privateKey, subnet: `${intToIp(cidr.base)}/${cidr.prefix}`, port: 51820, mtu: null, peers: out } };
 }

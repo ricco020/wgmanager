@@ -40,13 +40,16 @@ export function ImportForm({ pro }: { pro: boolean }) {
         <label>Name<input name="name" placeholder="Existing VPS" maxLength={60} defaultValue={v.name} /></label>
         <label>Public endpoint (hostname or IP)<input ref={ep} name="endpoint" placeholder="vpn.example.com" required defaultValue={v.endpoint} /></label>
       </div>
-      <label>DNS pushed to new clients<input name="dns" defaultValue={v.dns ?? "1.1.1.1"} /></label>
-      <label>Server wg0.conf (the file in /etc/wireguard on the server, with its [Interface] PrivateKey and [Peer] blocks)
+      <div className="row">
+        <label>DNS pushed to new clients<input name="dns" defaultValue={v.dns ?? "1.1.1.1"} /></label>
+        <label>Listen port (wg-easy JSON only, its WG_PORT)<input name="port" inputMode="numeric" placeholder="51820" defaultValue={v.port} /></label>
+      </div>
+      <label>Server wg0.conf (the file in /etc/wireguard on the server, with its [Interface] PrivateKey and [Peer] blocks), or wg-easy&apos;s wg0.json (v14 and earlier)
         <textarea ref={conf} name="conf" rows={10} required spellCheck={false} defaultValue={v.conf} placeholder={"[Interface]\nAddress = 10.8.0.1/24\nListenPort = 51820\nPrivateKey = ...\n\n[Peer]\n# laptop\nPublicKey = ...\nAllowedIPs = 10.8.0.2/32"} style={{ fontFamily: "var(--mono)", fontSize: 13 }} />
       </label>
       {fromCheck && <div className="ok">Your wg0.conf is filled in again. Add the server&apos;s public endpoint at the top, then import.</div>}
       {!pro && <label style={{ display: "flex", flexDirection: "row", gap: 8, alignItems: "center" }}><input type="checkbox" name="onlyFirst" style={{ width: "auto" }} /> Import only the first {FREE_LIMITS.peers} peers (free plan)</label>}
-      <p className="muted" style={{ fontSize: 13, margin: 0 }}>Keys stay as they are: nothing changes on the server or the devices. Imported peers keep their private key on their device, so new client files are issued only after you rotate a peer's keys here.</p>
+      <p className="muted" style={{ fontSize: 13, margin: 0 }}>Keys stay as they are: nothing changes on the server or the devices. From a wg0.conf, peers keep their private key on their device, so new client files are issued only after you rotate a peer's keys here. From wg-easy&apos;s wg0.json, each client&apos;s private key is in the file, so its .conf and QR code are ready at once (disabled clients are skipped, its file has no listen port, so set WG_PORT below if it is not 51820).</p>
       {state?.error && <div className="err">{state.error}</div>}
       {state?.paywall && !pro && (
         <div className="panel pro" style={{ margin: 0 }}>
@@ -54,7 +57,7 @@ export function ImportForm({ pro }: { pro: boolean }) {
           <button className="btn" type="submit" form="pro-import" onClick={keepForCheckout}>Upgrade to Pro and import all {state.paywall} peers</button>
         </div>
       )}
-      <button className="btn ghost" type="submit" disabled={pending}>{pending ? "Importing" : "Import wg0.conf"}</button>
+      <button className="btn ghost" type="submit" disabled={pending}>{pending ? "Importing" : "Import"}</button>
     </form>
     {state?.paywall && !pro && (
       <form id="pro-import" action="/api/stripe/checkout" method="post"><input type="hidden" name="next" value="import" /></form>

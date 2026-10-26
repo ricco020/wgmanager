@@ -63,7 +63,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
           <li>Add peers: laptop, phone, office router. Choose full tunnel or split tunnel per peer.</li>
           <li>Download <code>wg0.conf</code> for the server and one <code>.conf</code> (or QR code) per peer.</li>
           <li>On the server: <code>wg-quick up wg0</code>. On each device: import the file or scan the code.</li>
-          <li>Already running WireGuard? Paste your existing <code>wg0.conf</code>: keys and peers are imported as they are, nothing changes on the devices. Not sure the file is clean? Run it through the free <a href="/check">config checker</a> first.</li>
+          <li>Already running WireGuard? Paste your existing <code>wg0.conf</code>: keys and peers are imported as they are, nothing changes on the devices. Running wg-easy v14 and not ready for the v15 migration? Paste its <code>wg0.json</code> instead: it holds each client&apos;s private key, so every device&apos;s .conf and QR code are ready at once. Not sure the file is clean? Run it through the free <a href="/check">config checker</a> first.</li>
         </ol>
         <p className="muted">
           Need a server first? WireGuard needs a machine with a public IP that stays on; a small Linux VPS is enough for a household

@@ -21,7 +21,7 @@ function fail(form: FormData, error: string, fields: string[]): ActionState {
   return { error, values };
 }
 const SERVER_FIELDS = ["name", "endpoint", "port", "subnet", "dns", "mtu"];
-const IMPORT_FIELDS = ["name", "endpoint", "dns", "conf"];
+const IMPORT_FIELDS = ["name", "endpoint", "dns", "port", "conf"];
 const PEER_FIELDS = ["name", "mode", "keepalive"];
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -86,6 +86,12 @@ export async function createServer(_prev: ActionState, form: FormData): Promise<
   redirect(`/dashboard/servers/${server.id}`);
 }
 
+/** A private key from wg-easy's wg0.json is kept only if it really belongs to the peer's public key. */
+function ownKey(p: { publicKey: string; privateKey?: string }): boolean {
+  if (!p.privateKey) return false;
+  try { return wgPublicKeyOf(p.privateKey) === p.publicKey; } catch { return false; }
+}
+
 /**
  * Import an existing server wg0.conf: the server keeps its keys, the peers keep theirs (their private keys are on the
  * devices, so no client config can be issued for them until "Rotate keys"). Free plan: 1 server, 3 peers.
@@ -105,6 +111,12 @@ export async function importServer(_prev: ActionState, form: FormData): Promise<
   if (!conf) {
     await recordHit("/dashboard:import-error");
     return fail(form, error ?? "Could not read this file.", IMPORT_FIELDS);
+  }
+  const portField = String(form.get("port") ?? "").trim();
+  if (portField && text.trim().startsWith("{")) {
+    const p = Number(portField);
+    if (!Number.isInteger(p) || p < 1 || p > 65535) return fail(form, "Listen port must be between 1 and 65535.", IMPORT_FIELDS);
+    conf.port = p;
   }
   const pro = await isPro(user);
   const count = await db.server.count({ where: { userId: user.id } });
@@ -126,10 +138,10 @@ export async function importServer(_prev: ActionState, form: FormData): Promise<
     data: {
       userId: user.id, name, endpoint, port: conf.port, subnet: conf.subnet, dns, mtu: conf.mtu,
       publicKey, privateKeyEnc: encrypt(conf.privateKey),
-      peers: { create: peers.map((p) => ({ name: p.name, ip: p.ip, publicKey: p.publicKey, privateKeyEnc: null, presharedKeyEnc: p.presharedKey ? encrypt(p.presharedKey) : null })) },
+      peers: { create: peers.map((p) => ({ name: p.name, ip: p.ip, publicKey: p.publicKey, privateKeyEnc: ownKey(p) ? encrypt(p.privateKey!) : null, presharedKeyEnc: p.presharedKey ? encrypt(p.presharedKey) : null })) },
     },
   });
-  await recordHit(`/dashboard:import-ok-${peerBucket(peers.length)}`);
+  await recordHit(`/dashboard:import-ok${text.trim().startsWith("{") ? "-wgeasy" : ""}-${peerBucket(peers.length)}`);
   redirect(`/dashboard/servers/${server.id}?imported=${peers.length}`);
 }
 
