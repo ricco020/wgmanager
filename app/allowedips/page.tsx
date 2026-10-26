@@ -31,6 +31,21 @@ export default async function AllowedIpsPage({ searchParams }: { searchParams: P
       </section>
 
       <section className="panel" style={{ marginBottom: 24 }}>
+        <h2>Using a VPN provider&apos;s app rather than a .conf file?</h2>
+        <p className="muted">
+          This calculator is for raw WireGuard configs: the official WireGuard apps, wg-quick, routers. If the tunnel is a
+          commercial VPN running in its own app, look for a split tunneling setting before computing anything, since some apps
+          take the exclusion directly. Proton VPN&apos;s Windows and Android apps, for example, accept excluded IP addresses
+          and CIDR ranges (192.168.1.0/24) as well as excluded apps; on macOS and Linux its split tunneling works by app only,
+          and the feature needs a paid plan. Their own WireGuard .conf downloads still need the line computed above.
+        </p>
+        <p className="muted" style={{ fontSize: "0.9rem" }}>
+          Affiliate link, we may earn a commission at no cost to you:{" "}
+          <a href="/out/vpn?from=allowedips" rel="sponsored nofollow">Proton VPN plans</a>.
+        </p>
+      </section>
+
+      <section className="panel" style={{ marginBottom: 24 }}>
         <h2>Why AllowedIPs, and not an exclude list</h2>
         <p className="muted">
           In WireGuard, AllowedIPs does two jobs. On the way out, wg-quick and the mobile apps turn it into routes: an address
