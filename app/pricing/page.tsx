@@ -54,6 +54,12 @@ export default async function Pricing({ searchParams }: { searchParams: Promise<
           )}
         </div>
       </div>
+      <p id="one-time">
+        <strong>Only need the files once?</strong> WireGuard Pro for the free VPNSmith config generator is a one-time payment of 9 EUR,
+        no account and no subscription: up to 250 clients in one go and a single ZIP with every .conf file and its QR code. Keys are
+        generated in your browser.{" "}
+        <a href="https://www.vpnsmith.com/en/tools/wireguard-config-generator?ref=wgm-pricing#pro">Open the generator</a>.
+      </p>
       <p className="muted">
         Both plans manage WireGuard servers you run yourself. No server yet? A small Linux VPS with a public IP is enough for a household
         or a small team. Affiliate link, VPNSmith may earn a commission and the price is the same for you:{" "}
