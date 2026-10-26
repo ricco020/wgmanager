@@ -116,6 +116,22 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
               </p>
             </div>
           )}
+          {res.kind === "client" && counts.error === 0 && !res.privateEndpoint && (
+            <div className="handoff">
+              <h3>The file is valid and there is still no handshake?</h3>
+              <p className="muted">
+                Then the cause is outside this file. Free checks first, in this order: on the server, <code>wg show</code> lists this
+                client&apos;s public key; the server firewall and the cloud provider&apos;s firewall both allow the UDP port; the Endpoint
+                name resolves to the server&apos;s current public IP. If it works on mobile data but not on one network (office, hotel,
+                campus), that network blocks UDP: WireGuard has no obfuscation mode and no setting in this file changes that.
+              </p>
+              <p className="muted" style={{ fontSize: 14 }}>
+                For your own device on such a network, a VPN app with an obfuscated protocol gets through. Affiliate link, VPNSmith may earn
+                a commission and the price is the same for you:{" "}
+                <a href="/out/vpn?from=check-blocked" rel="sponsored nofollow">Proton VPN</a>, whose Stealth protocol is available on every plan, Free included.
+              </p>
+            </div>
+          )}
           {res.kind === "server" && res.peers > 0 && (
             <div className="handoff">
               <h3>Stop editing this file by hand</h3>
