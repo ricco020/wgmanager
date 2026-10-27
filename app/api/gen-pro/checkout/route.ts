@@ -42,6 +42,11 @@ async function start(locale: string, srcIn: string) {
     locale: ["fr", "es", "de", "it", "pt"].includes(locale) ? locale : "en",
     success_url: `${back}?wgpro={CHECKOUT_SESSION_ID}#pro`,
     cancel_url: `${back}?wgpro=cancel#pro`,
+    // The account-wide name is "Web services": a buyer coming from the generator must see the product
+    // they clicked, in the generator's orange, or the page reads like a third-party payment form.
+    "branding_settings[display_name]": "WireGuard Manager",
+    "branding_settings[button_color]": "#ea580c",
+    submit_type: "pay",
     "consent_collection[terms_of_service]": "required",
     "custom_text[terms_of_service_acceptance][message]":
       `I agree to the [terms of sale](${SITE}/terms#generator-pro) and ask for immediate access, which ends my right of withdrawal.`,

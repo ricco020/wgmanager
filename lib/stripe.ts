@@ -31,6 +31,8 @@ export async function createCheckout(user: User, next?: "import"): Promise<strin
     "subscription_data[metadata][userId]": user.id,
     success_url: `${SITE}/api/billing/return?s={CHECKOUT_SESSION_ID}${next ? `&next=${next}` : ""}`,
     cancel_url: next === "import" ? `${SITE}/dashboard#import` : `${SITE}/pricing`,
+    "branding_settings[display_name]": "WireGuard Manager",
+    "branding_settings[button_color]": "#ffb224",
     "consent_collection[terms_of_service]": "required",
     "custom_text[terms_of_service_acceptance][message]":
       `I agree to the [terms of sale](${SITE}/terms) and ask for the service to start now.`,
