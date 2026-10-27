@@ -59,14 +59,25 @@ export default async function AllowedIpsPage({ searchParams }: { searchParams: P
           per <a href="https://protonvpn.com/support/protonvpn-split-tunneling" rel="noopener">Proton&apos;s guide</a>, checked
           26 October 2026). Their WireGuard .conf downloads still need the line computed above.
         </p>
-        <p className="muted" style={{ margin: 0, fontSize: 14 }}>
-          Affiliate link, commission possible at no extra cost to you:{" "}
-          <a href="/out/vpn?from=allowedips" rel="sponsored nofollow">Proton VPN plans</a>. Split tunneling by IP range is on the
-          paid plans: Proton VPN Plus was <a href="/out/vpn?from=allowedips-plus" rel="sponsored nofollow">$2.99/month on the
-          2-year plan</a> on its partner page on 28 October 2026 ($71.76 for the first 24 months, then $83.88 a year, 30-day
-          money-back guarantee); the order page shows the price for your country.
-        </p>
       </section>
+
+      <aside aria-label="Partner offer" style={{ margin: "0 0 24px", padding: 20, background: "#111820", border: "1px solid #33404D", borderRadius: 10 }}>
+        <p style={{ margin: 0, display: "flex", gap: 10, alignItems: "baseline", flexWrap: "wrap" }}>
+          <strong>Partner offer: Proton VPN Plus</strong> <span className="tag">Affiliate link</span>
+        </p>
+        <p style={{ margin: "10px 0 4px", fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontSize: 15 }}>
+          $2.99/month on the 2-year plan
+        </p>
+        <p className="muted" style={{ margin: "0 0 12px", fontSize: 14 }}>
+          $71.76 for the first 24 months, then $83.88 a year. 30-day money-back guarantee, 10 devices, split tunneling by IP range.
+          Read on Proton&apos;s partner page on 28 October 2026; the order page shows the price for your country.
+        </p>
+        <p style={{ margin: 0, fontSize: 14 }}>
+          <a className="btn sm" href="/out/vpn?from=allowedips-plus" rel="sponsored nofollow">See the Proton VPN Plus offer</a>{" "}
+          <a className="muted" href="/out/vpn?from=allowedips" rel="sponsored nofollow">All Proton VPN plans</a>
+        </p>
+        <p className="muted" style={{ margin: "10px 0 0", fontSize: 13 }}>VPNSmith may earn a commission; the price is the same for you.</p>
+      </aside>
 
       <section className="panel" style={{ marginBottom: 24 }}>
         <h2>Same rule for every device, without the copy and paste</h2>
