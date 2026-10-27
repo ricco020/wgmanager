@@ -36,6 +36,9 @@ export async function createCheckout(user: User, next?: "import"): Promise<strin
     "consent_collection[terms_of_service]": "required",
     "custom_text[terms_of_service_acceptance][message]":
       `I agree to the [terms of sale](${SITE}/terms) and ask for the service to start now.`,
+    // Same reassurance as the one-time checkout, from /terms section 3.
+    "custom_text[submit][message]":
+      "Cancel anytime from Manage subscription on your dashboard; Pro stays open until the end of the paid month, then no further charge.",
   };
   if (user.stripeCustomerId) params.customer = user.stripeCustomerId;
   else params.customer_email = user.email;
