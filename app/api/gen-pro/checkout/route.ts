@@ -5,6 +5,47 @@ import { recordHit } from "@/lib/stats";
 
 export const dynamic = "force-dynamic";
 
+/** Checkout copy in the generator's language: 1 of the 4 human sessions on 27/10 came from /it and
+ *  saw an English-only payment page. FR uses "tu" like the vpnsmith generator page. */
+const COPY: Record<string, { name: string; desc: string; terms: string; submit: string }> = {
+  en: {
+    name: "WireGuard Pro (config generator, one-time)",
+    desc: "Up to 250 clients per generation and one ZIP with every .conf and its QR code. Keys stay in your browser.",
+    terms: "I agree to the [terms of sale](TERMS) and ask for immediate access, which ends my right of withdrawal.",
+    submit: "One payment, no subscription, no account. Pro unlocks as soon as you are back on the generator.",
+  },
+  fr: {
+    name: "WireGuard Pro (générateur de configs, paiement unique)",
+    desc: "Jusqu'à 250 clients par génération et un ZIP avec chaque .conf et son QR code. Les clés restent dans ton navigateur.",
+    terms: "J'accepte les [conditions de vente](TERMS) et demande l'accès immédiat, ce qui met fin à mon droit de rétractation.",
+    submit: "Un seul paiement, sans abonnement ni compte. Pro s'active dès ton retour sur le générateur.",
+  },
+  es: {
+    name: "WireGuard Pro (generador de configuraciones, pago único)",
+    desc: "Hasta 250 clientes por generación y un ZIP con cada .conf y su código QR. Las claves no salen de tu navegador.",
+    terms: "Acepto las [condiciones de venta](TERMS) y solicito el acceso inmediato, lo que pone fin a mi derecho de desistimiento.",
+    submit: "Un solo pago, sin suscripción ni cuenta. Pro se activa en cuanto vuelves al generador.",
+  },
+  de: {
+    name: "WireGuard Pro (Konfigurationsgenerator, Einmalzahlung)",
+    desc: "Bis zu 250 Clients pro Erzeugung und ein ZIP mit jeder .conf und ihrem QR-Code. Die Schlüssel bleiben in deinem Browser.",
+    terms: "Ich akzeptiere die [Verkaufsbedingungen](TERMS) und verlange den sofortigen Zugang, wodurch mein Widerrufsrecht erlischt.",
+    submit: "Eine Zahlung, kein Abo, kein Konto. Pro ist aktiv, sobald du zum Generator zurückkehrst.",
+  },
+  it: {
+    name: "WireGuard Pro (generatore di configurazioni, pagamento unico)",
+    desc: "Fino a 250 client per generazione e uno ZIP con ogni .conf e il suo codice QR. Le chiavi restano nel tuo browser.",
+    terms: "Accetto le [condizioni di vendita](TERMS) e chiedo l'accesso immediato, che pone fine al mio diritto di recesso.",
+    submit: "Un solo pagamento, nessun abbonamento né account. Pro si attiva appena torni al generatore.",
+  },
+  pt: {
+    name: "WireGuard Pro (gerador de configurações, pagamento único)",
+    desc: "Até 250 clientes por geração e um ZIP com cada .conf e o seu código QR. As chaves ficam no seu navegador.",
+    terms: "Aceito as [condições de venda](TERMS) e peço o acesso imediato, o que põe fim ao meu direito de arrependimento.",
+    submit: "Um só pagamento, sem assinatura nem conta. O Pro é ativado assim que voltar ao gerador.",
+  },
+};
+
 const SRC_RE = /^[a-z0-9-]{1,40}$/;
 
 /** Form POST from the VPNSmith generator: creates a one-time Checkout session and sends the
@@ -25,6 +66,8 @@ async function start(locale: string, srcIn: string) {
   const srcRaw = srcIn.toLowerCase();
   const src = SRC_RE.test(srcRaw) ? srcRaw : "gen";
   const back = genUrl(locale);
+  const lang = locale in COPY ? locale : "en";
+  const c = COPY[lang];
   const sk = process.env.STRIPE_SECRET_KEY;
   if (!sk) return NextResponse.redirect(`${back}?wgpro=unavailable#pro`, 303);
   await recordHit(`/gen-pro:checkout-${src}`, null).catch(() => {});
@@ -32,14 +75,13 @@ async function start(locale: string, srcIn: string) {
     mode: "payment",
     "line_items[0][price_data][currency]": "eur",
     "line_items[0][price_data][unit_amount]": String(GEN_PRICE_CENTS),
-    "line_items[0][price_data][product_data][name]": "WireGuard Pro (config generator, one-time)",
-    "line_items[0][price_data][product_data][description]":
-      "Up to 250 clients per generation and one ZIP with every .conf and its QR code. Keys stay in your browser.",
+    "line_items[0][price_data][product_data][name]": c.name,
+    "line_items[0][price_data][product_data][description]": c.desc,
     "line_items[0][quantity]": "1",
     "metadata[projet]": GEN_PROJECT,
     "metadata[src]": src,
     "payment_intent_data[metadata][projet]": GEN_PROJECT,
-    locale: ["fr", "es", "de", "it", "pt"].includes(locale) ? locale : "en",
+    locale: lang,
     success_url: `${back}?wgpro={CHECKOUT_SESSION_ID}#pro`,
     cancel_url: `${back}?wgpro=cancel#pro`,
     // The account-wide name is "Web services": a buyer coming from the generator must see the product
@@ -48,8 +90,8 @@ async function start(locale: string, srcIn: string) {
     "branding_settings[button_color]": "#ea580c",
     submit_type: "pay",
     "consent_collection[terms_of_service]": "required",
-    "custom_text[terms_of_service_acceptance][message]":
-      `I agree to the [terms of sale](${SITE}/terms#generator-pro) and ask for immediate access, which ends my right of withdrawal.`,
+    "custom_text[terms_of_service_acceptance][message]": c.terms.replace("TERMS", `${SITE}/terms#generator-pro`),
+    "custom_text[submit][message]": c.submit,
   };
   const r = await fetch("https://api.stripe.com/v1/checkout/sessions", {
     method: "POST",
