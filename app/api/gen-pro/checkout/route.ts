@@ -93,6 +93,12 @@ async function start(locale: string, srcIn: string) {
     "custom_text[terms_of_service_acceptance][message]": c.terms.replace("TERMS", `${SITE}/terms#generator-pro`),
     "custom_text[submit][message]": c.submit,
   };
+  // The account's default payment method configuration leaves out Klarna although the capability is active
+  // (probe 27/10), and 3 of the first 5 buyers came from DE/IT, where Klarna is a common way to pay.
+  // PayPal is not activated on the account. Card brings Apple Pay and Google Pay along.
+  ["card", "link", "klarna", "bancontact", "eps", "ideal", "p24", "mobilepay"].forEach((t, i) => {
+    params[`payment_method_types[${i}]`] = t;
+  });
   const r = await fetch("https://api.stripe.com/v1/checkout/sessions", {
     method: "POST",
     headers: { Authorization: `Bearer ${sk}`, "Content-Type": "application/x-www-form-urlencoded" },
