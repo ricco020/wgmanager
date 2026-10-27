@@ -9,40 +9,40 @@ export const dynamic = "force-dynamic";
  *  saw an English-only payment page. FR uses "tu" like the vpnsmith generator page. */
 const COPY: Record<string, { name: string; desc: string; terms: string; submit: string }> = {
   en: {
-    name: "WireGuard Pro (config generator, one-time)",
-    desc: "Up to 250 clients per generation and one ZIP with every .conf and its QR code. Keys stay in your browser.",
+    name: "WireGuard config generator Pro",
+    desc: "Keys stay in your browser. Up to 250 clients, one ZIP with every .conf and its QR code.",
     terms: "I agree to the [terms of sale](TERMS) and ask for immediate access, which ends my right of withdrawal.",
-    submit: "One payment, no subscription, no account. Pro unlocks as soon as you are back on the generator. Refund within 14 days if the export does not work for you.",
+    submit: "9 EUR once. No subscription, no account. Pro unlocks when you are back on the generator. Guarantee: refund within 14 days if the export does not work for you.",
   },
   fr: {
-    name: "WireGuard Pro (générateur de configs, paiement unique)",
-    desc: "Jusqu'à 250 clients par génération et un ZIP avec chaque .conf et son QR code. Les clés restent dans ton navigateur.",
+    name: "Générateur de configs WireGuard Pro",
+    desc: "Les clés restent dans ton navigateur. Jusqu'à 250 clients, un ZIP avec chaque .conf et son QR code.",
     terms: "J'accepte les [conditions de vente](TERMS) et demande l'accès immédiat, ce qui met fin à mon droit de rétractation.",
-    submit: "Un seul paiement, sans abonnement ni compte. Pro s'active dès ton retour sur le générateur. Remboursé sous 14 jours si l'export ne te convient pas.",
+    submit: "9 EUR une seule fois. Sans abonnement ni compte. Pro s'active à ton retour sur le générateur. Garantie : remboursé sous 14 jours si l'export ne te convient pas.",
   },
   es: {
-    name: "WireGuard Pro (generador de configuraciones, pago único)",
-    desc: "Hasta 250 clientes por generación y un ZIP con cada .conf y su código QR. Las claves no salen de tu navegador.",
+    name: "Generador de configuraciones WireGuard Pro",
+    desc: "Las claves no salen de tu navegador. Hasta 250 clientes, un ZIP con cada .conf y su código QR.",
     terms: "Acepto las [condiciones de venta](TERMS) y solicito el acceso inmediato, lo que pone fin a mi derecho de desistimiento.",
-    submit: "Un solo pago, sin suscripción ni cuenta. Pro se activa en cuanto vuelves al generador. Reembolso en 14 días si la exportación no te sirve.",
+    submit: "9 EUR una sola vez. Sin suscripción ni cuenta. Pro se activa al volver al generador. Garantía: reembolso en 14 días si la exportación no te sirve.",
   },
   de: {
-    name: "WireGuard Pro (Konfigurationsgenerator, Einmalzahlung)",
-    desc: "Bis zu 250 Clients pro Erzeugung und ein ZIP mit jeder .conf und ihrem QR-Code. Die Schlüssel bleiben in deinem Browser.",
+    name: "WireGuard-Konfigurationsgenerator Pro",
+    desc: "Die Schlüssel bleiben in deinem Browser. Bis zu 250 Clients, ein ZIP mit jeder .conf und ihrem QR-Code.",
     terms: "Ich akzeptiere die [Verkaufsbedingungen](TERMS) und verlange den sofortigen Zugang, wodurch mein Widerrufsrecht erlischt.",
-    submit: "Eine Zahlung, kein Abo, kein Konto. Pro ist aktiv, sobald du zum Generator zurückkehrst. Erstattung innerhalb von 14 Tagen, wenn der Export nicht funktioniert.",
+    submit: "9 EUR einmalig. Kein Abo, kein Konto. Pro ist aktiv, sobald du zum Generator zurückkehrst. Garantie: Erstattung innerhalb von 14 Tagen, wenn der Export nicht funktioniert.",
   },
   it: {
-    name: "WireGuard Pro (generatore di configurazioni, pagamento unico)",
-    desc: "Fino a 250 client per generazione e uno ZIP con ogni .conf e il suo codice QR. Le chiavi restano nel tuo browser.",
+    name: "Generatore di configurazioni WireGuard Pro",
+    desc: "Le chiavi restano nel tuo browser. Fino a 250 client, uno ZIP con ogni .conf e il suo codice QR.",
     terms: "Accetto le [condizioni di vendita](TERMS) e chiedo l'accesso immediato, che pone fine al mio diritto di recesso.",
-    submit: "Un solo pagamento, nessun abbonamento né account. Pro si attiva appena torni al generatore. Rimborso entro 14 giorni se l'esportazione non funziona.",
+    submit: "9 EUR una sola volta. Nessun abbonamento né account. Pro si attiva quando torni al generatore. Garanzia: rimborso entro 14 giorni se l'esportazione non funziona.",
   },
   pt: {
-    name: "WireGuard Pro (gerador de configurações, pagamento único)",
-    desc: "Até 250 clientes por geração e um ZIP com cada .conf e o seu código QR. As chaves ficam no seu navegador.",
+    name: "Gerador de configurações WireGuard Pro",
+    desc: "As chaves ficam no seu navegador. Até 250 clientes, um ZIP com cada .conf e o seu código QR.",
     terms: "Aceito as [condições de venda](TERMS) e peço o acesso imediato, o que põe fim ao meu direito de arrependimento.",
-    submit: "Um só pagamento, sem assinatura nem conta. O Pro é ativado assim que voltar ao gerador. Reembolso em 14 dias se a exportação não funcionar.",
+    submit: "9 EUR uma só vez. Sem assinatura nem conta. O Pro é ativado quando voltar ao gerador. Garantia: reembolso em 14 dias se a exportação não funcionar.",
   },
 };
 
@@ -85,9 +85,9 @@ async function start(locale: string, srcIn: string) {
     success_url: `${back}?wgpro={CHECKOUT_SESSION_ID}#pro`,
     cancel_url: `${back}?wgpro=cancel#pro`,
     // The account-wide name is "Web services": a buyer coming from the generator must see the product
-    // they clicked, in the generator's orange, or the page reads like a third-party payment form.
+    // they clicked, in a darker orange than the generator's (contrast with Stripe's white text, design judge 27/10), or the page reads like a third-party payment form.
     "branding_settings[display_name]": "WireGuard Manager",
-    "branding_settings[button_color]": "#ea580c",
+    "branding_settings[button_color]": "#c2410c",
     submit_type: "pay",
     "consent_collection[terms_of_service]": "required",
     "custom_text[terms_of_service_acceptance][message]": c.terms.replace("TERMS", `${SITE}/terms#generator-pro`),
