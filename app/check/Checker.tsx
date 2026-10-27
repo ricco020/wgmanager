@@ -132,6 +132,9 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
                 <p className="muted" style={{ fontSize: 14, margin: "8px 0 0" }}>
                   Option for a network that blocks WireGuard, for your own device: a VPN app with an obfuscated protocol gets through.{" "}
                   <a href="/out/vpn?from=check-blocked" rel="sponsored nofollow">Proton VPN</a> has Stealth, on every plan including Free.
+                  The paid plan adds 10 devices and every server country: on its partner page, read on 28 October 2026, Proton VPN Plus
+                  costs <a href="/out/vpn?from=check-plus" rel="sponsored nofollow">$2.99/month on the 2-year plan</a> ($71.76 for the
+                  first 24 months, then $83.88 a year), with a 30-day money-back guarantee; the order page shows the price for your country.
                   VPNSmith may earn a commission; the price is the same for you.
                 </p>
               </div>

@@ -61,7 +61,10 @@ export default async function AllowedIpsPage({ searchParams }: { searchParams: P
         </p>
         <p className="muted" style={{ margin: 0, fontSize: 14 }}>
           Affiliate link, commission possible at no extra cost to you:{" "}
-          <a href="/out/vpn?from=allowedips" rel="sponsored nofollow">Proton VPN plans</a>.
+          <a href="/out/vpn?from=allowedips" rel="sponsored nofollow">Proton VPN plans</a>. Split tunneling by IP range is on the
+          paid plans: Proton VPN Plus was <a href="/out/vpn?from=allowedips-plus" rel="sponsored nofollow">$2.99/month on the
+          2-year plan</a> on its partner page on 28 October 2026 ($71.76 for the first 24 months, then $83.88 a year, 30-day
+          money-back guarantee); the order page shows the price for your country.
         </p>
       </section>
 
