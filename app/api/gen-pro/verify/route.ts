@@ -8,6 +8,12 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request) {
   const s = new URL(req.url).searchParams.get("s") ?? "";
   const sk = process.env.STRIPE_SECRET_KEY;
+  // ?s=cancel: the generator pings this once when a buyer comes back from Checkout with the back arrow
+  // (cancel_url), so "saw the price and left" is counted apart from "closed the tab" (9 sessions, 0 paid by 28/10).
+  if (s === "cancel") {
+    await recordHit("/gen-pro:cancel-back", null).catch(() => {});
+    return NextResponse.json({ pro: false }, { headers: { ...cors(), "Cache-Control": "no-store" } });
+  }
   if (!SESSION_RE.test(s) || !sk) return NextResponse.json({ pro: false }, { headers: cors() });
   const r = await fetch(`https://api.stripe.com/v1/checkout/sessions/${s}?expand[]=payment_intent.latest_charge`, {
     headers: { Authorization: `Bearer ${sk}` },
