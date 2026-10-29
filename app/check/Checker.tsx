@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { checkConfig, EP_KEY, HANDOFF_KEY, type CheckResult } from "@/lib/check";
 import { FREE_LIMITS, PRO_PRICE_EUR } from "@/lib/site";
+import { HostBlock } from "./HostBlock";
 import { AddPeer } from "./AddPeer";
 
 const SAMPLE = `[Interface]
@@ -112,10 +113,20 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
                 plans), port forwarding is impossible: the server needs a public IPv4, from your provider or from a small VPS.
               </p>
               <p className="muted" style={{ fontSize: 14 }}>
-                Affiliate link, VPNSmith may earn a commission and the price is the same for you:{" "}
-                <a href="/out/vps?from=check-private" rel="sponsored nofollow">Contabo VPS with WireGuard preinstalled</a>.
+                Affiliate links, VPNSmith may earn a commission and the price is the same for you:{" "}
+                <a href="/out/vps?from=check-private&p=hp" rel="sponsored nofollow">HostPapa VPS Lite, public IPv4, 2.95 USD/month on 3 years</a>
+                {" "}or a <a href="/out/vps?from=check-private" rel="sponsored nofollow">Contabo VPS with WireGuard preinstalled</a>.
               </p>
             </div>
+          )}
+          {!res.privateEndpoint && res.kind !== "wg-easy" && counts.error === 0 && (
+            <HostBlock
+              from={res.kind === "server" ? "check-server" : "check-client"}
+              title={res.kind === "server" ? "Where to run this wg0.conf" : "No server behind this Endpoint yet?"}
+              lead={res.kind === "server"
+                ? "This file needs a Linux machine with a public IP that stays on. A home box works if the router forwards the UDP port; otherwise a small VPS is enough for a household or a small team: copy the file to /etc/wireguard/wg0.conf, then wg-quick up wg0."
+                : "A client file points to a server. If you do not have one yet, a small Linux VPS with a public IP is enough: install WireGuard, write its wg0.conf with the free generator on VPNSmith, then paste it here to check it."}
+            />
           )}
           {res.kind === "client" && counts.error === 0 && !res.privateEndpoint && (
             <div className="handoff">

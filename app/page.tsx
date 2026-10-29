@@ -69,9 +69,11 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
         </ol>
         <p className="muted">
           Need a server first? WireGuard needs a machine with a public IP that stays on; a small Linux VPS is enough for a household
-          or a small team. Contabo sells a VPS with WireGuard preinstalled:{" "}
-          <a href="/out/vps?from=home" rel="sponsored nofollow">see the Contabo WireGuard VPS</a>{" "}
-          (affiliate link: VPNSmith may earn a commission, the price is the same for you). To compare the usual options, the free
+          or a small team. The smallest that runs it:{" "}
+          <a href="/out/vps?from=home&p=hp" rel="sponsored nofollow">HostPapa VPS Lite</a> (1 core, 1 GB RAM, 25 GB NVMe,
+          2.95 USD/month on the 3-year term on 28 October 2026, 30-day money-back), or a{" "}
+          <a href="/out/vps?from=home" rel="sponsored nofollow">Contabo VPS with WireGuard preinstalled</a>{" "}
+          (affiliate links: VPNSmith may earn a commission, the price is the same for you). To compare the usual options, the free
           {" "}<a href="https://www.vpnsmith.com/en/tools/self-hosted-vpn-cost-calculator" rel="noopener">self-hosted VPN cost calculator</a>
           {" "}on VPNSmith lists them.
         </p>

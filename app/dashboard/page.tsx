@@ -42,9 +42,11 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
             <li>
               <strong>No server yet.</strong> WireGuard needs a machine with a public IP that stays on. A small Linux VPS is enough for a
               household or a small team: WireGuard runs in the kernel and a single vCPU is usually
-              enough for that traffic. Contabo sells a VPS with WireGuard preinstalled.{" "}
-              <a className="btn sm" href="/out/vps?from=empty" rel="sponsored nofollow">See the Contabo WireGuard VPS</a>{" "}
-              <span className="muted">(affiliate link: VPNSmith may earn a commission, the price is the same for you). Then come back and
+              enough for that traffic. Smallest that runs it: HostPapa VPS Lite (1 core, 1 GB RAM, 25 GB NVMe, 2.95 USD/month on the
+              3-year term on 28 October 2026).{" "}
+              <a className="btn sm" href="/out/vps?from=empty&p=hp" rel="sponsored nofollow">See HostPapa VPS Lite</a>{" "}
+              <a href="/out/vps?from=empty" rel="sponsored nofollow">or Contabo with WireGuard preinstalled</a>{" "}
+              <span className="muted">(affiliate links: VPNSmith may earn a commission, the price is the same for you). Then come back and
               create the server here with its IP.</span>
             </li>
           </ol>
