@@ -143,3 +143,7 @@ ul.findings li.f-pass b { color: var(--green); }
   .ws-actions .btn { width: 100%; min-height: 48px; text-align: center; }
   .ws-head .btn { min-height: 44px; }
 }
+.ws-hint { font-family: var(--mono); font-size: 12px; }
+.h1tool { font-weight: 600; }
+.workspace .privacy { font-size: 14px; padding: 8px 14px; }
+@media (max-width: 480px) { .ws-actions .ws-sample { min-height: 44px; } .ws-hint { display: none; } }
