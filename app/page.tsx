@@ -27,7 +27,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
             {" "}
             <a className="btn ghost" href="/pricing">Compare plans</a>
           </p>
-          <p className="muted fade d3">No card for the free plan. Pro: unlimited servers and peers, {PRO_PRICE_EUR} EUR/month, cancel anytime. Only need the config files once? <a href="/pricing#one-time">9 EUR, one time</a>.</p>
+          <p className="muted fade d3">No card for the free plan. Pro: unlimited servers and peers, {PRO_PRICE_EUR} EUR/month, cancel anytime. Only need the config files once? <a href="https://www.vpnsmith.com/en/tools/wireguard-config-generator?ref=wgm-home">the generator is free</a>.</p>
         </div>
         <figure className="fade d2" style={{ margin: 0 }}>
           <img

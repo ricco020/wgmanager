@@ -56,13 +56,12 @@ export default async function Pricing({ searchParams }: { searchParams: Promise<
       </div>
       <div id="one-time" style={{ marginTop: 48, padding: 22, border: "1px dashed var(--line)", borderRadius: 10 }}>
         <h3 style={{ margin: "0 0 4px" }}>Only need configuration files?</h3>
-        <div className="price" style={{ fontSize: 22 }}>9 EUR <small>one-time payment, no account, no subscription</small></div>
+        <div className="price" style={{ fontSize: 22 }}>0 EUR <small>no account, no subscription</small></div>
         <p className="muted" style={{ margin: "8px 0 14px" }}>
-          A one-time add-on for the free VPNSmith WireGuard config generator. Free: up to 10 clients, one file at a time.
-          With the add-on: up to 250 clients in one go and a single ZIP with every .conf file and its QR code as PNG.
-          Keys are generated in your browser and never leave it.
+          The VPNSmith WireGuard config generator is free: up to 250 clients in one go, a QR code per client and a single ZIP
+          with every .conf file and its QR code as PNG. Keys are generated in your browser and never leave it.
         </p>
-        <a className="btn ghost sm" href="https://www.vpnsmith.com/en/tools/wireguard-config-generator?ref=wgm-pricing#pro">Open the VPNSmith generator</a>
+        <a className="btn ghost sm" href="https://www.vpnsmith.com/en/tools/wireguard-config-generator?ref=wgm-pricing">Open the VPNSmith generator</a>
       </div>
       <p className="muted">
         Both plans manage WireGuard servers you run yourself. No server yet? A small Linux VPS with a public IP is enough for a household
