@@ -9,37 +9,37 @@ export const dynamic = "force-dynamic";
  *  saw an English-only payment page. FR uses "tu" like the vpnsmith generator page. */
 const COPY: Record<string, { name: string; desc: string; terms: string; submit: string }> = {
   en: {
-    name: "WireGuard config generator Pro",
+    name: "WireGuard Pro for the VPNSmith config generator",
     desc: "Keys stay in your browser. Up to 250 clients, one ZIP with every .conf and its QR code.",
     terms: "I agree to the [terms of sale](TERMS) and ask for immediate access, which ends my right of withdrawal.",
     submit: "9 EUR once. No subscription, no account. Pro unlocks when you are back on the generator. Guarantee: refund within 14 days if the export does not work for you.",
   },
   fr: {
-    name: "Générateur de configs WireGuard Pro",
+    name: "WireGuard Pro pour le générateur de configs VPNSmith",
     desc: "Les clés restent dans ton navigateur. Jusqu'à 250 clients, un ZIP avec chaque .conf et son QR code.",
     terms: "J'accepte les [conditions de vente](TERMS) et demande l'accès immédiat, ce qui met fin à mon droit de rétractation.",
     submit: "9 EUR une seule fois. Sans abonnement ni compte. Pro s'active à ton retour sur le générateur. Garantie : remboursé sous 14 jours si l'export ne te convient pas.",
   },
   es: {
-    name: "Generador de configuraciones WireGuard Pro",
+    name: "WireGuard Pro para el generador de configuraciones VPNSmith",
     desc: "Las claves no salen de tu navegador. Hasta 250 clientes, un ZIP con cada .conf y su código QR.",
     terms: "Acepto las [condiciones de venta](TERMS) y solicito el acceso inmediato, lo que pone fin a mi derecho de desistimiento.",
     submit: "9 EUR una sola vez. Sin suscripción ni cuenta. Pro se activa al volver al generador. Garantía: reembolso en 14 días si la exportación no te sirve.",
   },
   de: {
-    name: "WireGuard-Konfigurationsgenerator Pro",
+    name: "WireGuard Pro für den VPNSmith-Konfigurationsgenerator",
     desc: "Die Schlüssel bleiben in deinem Browser. Bis zu 250 Clients, ein ZIP mit jeder .conf und ihrem QR-Code.",
     terms: "Ich akzeptiere die [Verkaufsbedingungen](TERMS) und verlange den sofortigen Zugang, wodurch mein Widerrufsrecht erlischt.",
     submit: "9 EUR einmalig. Kein Abo, kein Konto. Pro ist aktiv, sobald du zum Generator zurückkehrst. Garantie: Erstattung innerhalb von 14 Tagen, wenn der Export nicht funktioniert.",
   },
   it: {
-    name: "Generatore di configurazioni WireGuard Pro",
+    name: "WireGuard Pro per il generatore di configurazioni VPNSmith",
     desc: "Le chiavi restano nel tuo browser. Fino a 250 client, uno ZIP con ogni .conf e il suo codice QR.",
     terms: "Accetto le [condizioni di vendita](TERMS) e chiedo l'accesso immediato, che pone fine al mio diritto di recesso.",
     submit: "9 EUR una sola volta. Nessun abbonamento né account. Pro si attiva quando torni al generatore. Garanzia: rimborso entro 14 giorni se l'esportazione non funziona.",
   },
   pt: {
-    name: "Gerador de configurações WireGuard Pro",
+    name: "WireGuard Pro para o gerador de configurações VPNSmith",
     desc: "As chaves ficam no seu navegador. Até 250 clientes, um ZIP com cada .conf e o seu código QR.",
     terms: "Aceito as [condições de venda](TERMS) e peço o acesso imediato, o que põe fim ao meu direito de arrependimento.",
     submit: "9 EUR uma só vez. Sem assinatura nem conta. O Pro é ativado quando voltar ao gerador. Garantia: reembolso em 14 dias se a exportação não funcionar.",
@@ -86,7 +86,9 @@ async function start(locale: string, srcIn: string) {
     cancel_url: `${back}?wgpro=cancel#pro`,
     // The account-wide name is "Web services": a buyer coming from the generator must see the product
     // they clicked, in a darker orange than the generator's (contrast with Stripe's white text, design judge 27/10), or the page reads like a third-party payment form.
-    "branding_settings[display_name]": "WireGuard Manager",
+    // Named after the site and the box they clicked ("WireGuard Pro", VPNSmith), not "WireGuard Manager": the same generator page
+    // sells WireGuard Manager at 9 EUR per month, so a 9,00 EUR page under that name read as the subscription (29/10, 0 payment attempt on 11 departures).
+    "branding_settings[display_name]": "VPNSmith",
     "branding_settings[button_color]": "#c2410c",
     submit_type: "pay",
     "consent_collection[terms_of_service]": "required",
