@@ -72,14 +72,33 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
   return (
     <div className="checker">
       {fromGen && <div className="ok" style={{ marginBottom: 12 }}>The wg0.conf you just generated on VPNSmith is loaded below. It was read from the link in your browser and has not been uploaded.</div>}
-      <label>Paste a wg0.conf (server) or a client .conf
-        <textarea ref={ta} rows={14} spellCheck={false} autoComplete="off" placeholder={"[Interface]\nPrivateKey = ...\nAddress = 10.8.0.2/32\n\n[Peer]\nPublicKey = ...\nEndpoint = vpn.example.com:51820\nAllowedIPs = 0.0.0.0/0, ::/0"} style={{ fontSize: 13 }} />
-      </label>
-      <p style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center", margin: "12px 0" }}>
+      <div className="workspace">
+        <div className="ws-head">
+          <span className="ws-title">Configuration</span>
+          <button className="btn ghost sm" type="button" onClick={() => { if (ta.current) ta.current.value = SAMPLE; run(); }}>Load a broken example</button>
+        </div>
+        <p className="privacy" style={{ margin: 0, borderRadius: 0, borderLeft: 0, borderRight: 0 }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
+          <span>Checked locally in this page. The file and its private keys are never uploaded; <a href="#privacy">what is counted</a>.</span>
+        </p>
+        <label className="sr" htmlFor="wgconf">Paste a wg0.conf (server) or a client .conf</label>
+        <textarea id="wgconf" ref={ta} spellCheck={false} autoComplete="off" placeholder={"[Interface]\nPrivateKey = ...\nAddress = 10.8.0.2/32\n\n[Peer]\nPublicKey = ...\nEndpoint = vpn.example.com:51820\nAllowedIPs = 0.0.0.0/0, ::/0"} />
+      </div>
+      <p className="ws-actions">
         <button className="btn" type="button" onClick={() => run()}>Check this config</button>
-        <button className="btn ghost sm" type="button" onClick={() => { if (ta.current) ta.current.value = SAMPLE; run(); }}>Try a broken example</button>
-        <span className="muted" style={{ fontSize: 13 }}>Runs in your browser. The file, and its keys, are never uploaded.</span>
+        <span className="muted" style={{ fontSize: 14 }}>Server or client file, with or without comments.</span>
       </p>
+
+      {!res && (
+        <div className="preview" aria-hidden="true">
+          <div className="pv-label">Example of a result</div>
+          <ul className="findings">
+            <li className="f-error"><b>Error</b><span className="muted"> [Peer] laptop, line 10</span><div>AllowedIPs 10.8.0.2/24 overlaps the phone&apos;s 10.8.0.3/32: use 10.8.0.2/32.</div></li>
+            <li className="f-warn"><b>Warning</b><span className="muted"> [Interface], line 5</span><div>MTU 1500 fragments once WireGuard adds its headers: set 1420.</div></li>
+            <li className="f-pass"><b>Passed</b><span className="muted"> keys</span><div>3 keys of 44 base64 characters, 32 bytes each.</div></li>
+          </ul>
+        </div>
+      )}
 
       {res && counts && (
         <div className="panel fade" aria-live="polite">

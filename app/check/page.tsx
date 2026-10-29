@@ -31,28 +31,34 @@ export default async function CheckPage({ searchParams }: { searchParams: Promis
   return (
     <>
       <JsonLd data={toolLd("/check", "WireGuard config checker", metadata.description as string, CHECKS.map(([k]) => k).concat(["Add a peer: next free IP, keys, client .conf and QR code"]))} />
-      <section style={{ padding: "48px 0 20px" }}>
-        <div className="fade" style={{ color: "var(--amber)", textTransform: "uppercase", letterSpacing: "0.14em", fontSize: 12, marginBottom: 14 }}>Free tool, no account</div>
-        <h1 className="fade d1">WireGuard config checker</h1>
-        <p className="fade d2 muted" style={{ maxWidth: "62ch", fontSize: "1.05rem" }}>
-          Handshake never completes, connected but no traffic, works on Wi-Fi but not on mobile data?
-          Paste the server <code>wg0.conf</code> or the client file and see, line by line, what wg-quick will
-          refuse and what will quietly misroute your packets. On a server file, add a peer in the same page: next free IP,
-          fresh keys, the block for the server, the client file and its QR code.
+      <section style={{ padding: "28px 0 16px" }}>
+        <div className="fade" style={{ color: "var(--amber)", textTransform: "uppercase", letterSpacing: "0.14em", fontSize: 12, marginBottom: 10 }}>Free tool, no account</div>
+        <h1 className="fade d1 h1tool">WireGuard config checker</h1>
+        <p className="fade d2 muted" style={{ maxWidth: "58ch", fontSize: "1.05rem", margin: 0 }}>
+          Paste a <code>wg0.conf</code> or a client file: every line wg-quick will refuse or misroute, with the fix.
         </p>
       </section>
 
-      <section className="fade d3" style={{ marginBottom: 40 }}>
+      <section className="fade d3" style={{ marginBottom: 32 }}>
         <Checker signedIn={!!user} />
       </section>
 
       <section className="panel" style={{ marginBottom: 24 }}>
+        <h2>Symptoms it explains</h2>
+        <p className="muted" style={{ margin: 0 }}>
+          Handshake never completes, connected but no traffic, works on Wi-Fi but not on mobile data, sites that load halfway.
+          On a server file, the same page adds a peer: next free IP, fresh keys, the block for the server, the client file and its QR code.
+        </p>
+      </section>
+
+      <section className="panel" style={{ marginBottom: 24 }}>
         <h2>What it checks</h2>
-        <dl className="checks">
+        <p className="muted" style={{ fontSize: 14 }}>Eight groups of rules, read from the wg-quick and wg(8) behaviour. Open one for the detail.</p>
+        <div className="checklist">
           {CHECKS.map(([t, d]) => (
-            <div key={t}><dt>{t}</dt><dd className="muted">{d}</dd></div>
+            <details key={t}><summary>{t}</summary><p className="muted">{d}</p></details>
           ))}
-        </dl>
+        </div>
       </section>
 
       <section className="panel" style={{ marginBottom: 24 }}>
@@ -74,7 +80,7 @@ export default async function CheckPage({ searchParams }: { searchParams: Promis
         </p>
       </section>
 
-      <section className="panel" style={{ marginBottom: 24 }}>
+      <section id="privacy" className="panel" style={{ marginBottom: 24 }}>
         <h2>Privacy</h2>
         <p className="muted">
           The check runs entirely in this page&apos;s JavaScript. The config, private keys included, is not sent anywhere; we only

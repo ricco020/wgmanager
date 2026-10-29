@@ -120,3 +120,26 @@ textarea::placeholder { color: #7d8a9a; }
 .toolpanel { background: #131c24; border: 1px solid #33414f; border-radius: 12px; padding: 22px; }
 .step { font-family: var(--display); font-weight: 700; color: var(--text); font-size: 15px; margin: 0 0 8px; }
 .step b { color: var(--amber); margin-right: 6px; }
+
+/* /check workspace (design 29/10): short intro, field before 320px on mobile, privacy at the point of input, preview of a result. */
+.h1tool { font-size: clamp(2rem, 4.4vw, 3rem); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.workspace { background: #141c24; border: 1px solid #33414f; border-radius: 12px; overflow: hidden; }
+.ws-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; border-bottom: 1px solid #2a3745; }
+.ws-title { font-family: var(--mono); font-size: 13px; color: var(--text); letter-spacing: 0.04em; }
+.workspace textarea { border: 0; border-radius: 0; background: #0a0f14; font-size: 13px; line-height: 20px; height: 240px; padding: 14px; resize: vertical; display: block; }
+.ws-actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin: 14px 0; }
+.preview { border: 1px dashed var(--line); border-radius: 10px; padding: 14px; }
+.pv-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 10px; }
+ul.findings li.f-pass { border-left-color: var(--green); }
+ul.findings li.f-pass b { color: var(--green); }
+.checklist { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
+.checklist details { border-bottom: 1px solid var(--line); padding: 10px 0; }
+.checklist summary { color: var(--text); font-family: var(--display); font-weight: 700; }
+.checklist details p { margin: 8px 0 0; font-size: 14px; }
+@media (max-width: 700px) { .checklist { grid-template-columns: 1fr; } }
+@media (max-width: 480px) {
+  .workspace textarea { height: 200px; }
+  .ws-actions .btn { width: 100%; min-height: 48px; text-align: center; }
+  .ws-head .btn { min-height: 44px; }
+}
