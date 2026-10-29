@@ -1,0 +1,13 @@
+# WireGuard Manager (wg.vpnsmith.com)
+
+> Hosted WireGuard configuration manager by VPNSmith, plus free browser tools to check and fix WireGuard configs. Keys in the free tools are processed in the browser and never uploaded.
+
+## Free tools (no account)
+- [WireGuard config checker](https://wg.vpnsmith.com/check): paste a wg0.conf or a client .conf and get, line by line, what wg-quick refuses and what misroutes traffic: truncated or swapped keys, unknown keys and sections, overlapping AllowedIPs between peers, duplicate peers, missing or private Endpoint, MTU above 1420, IPv6 and DNS leaks in a full tunnel, server hygiene (ListenPort, SaveConfig, NAT interface in PostUp). On a server file, add a peer: next free IP, keys, client .conf and QR code.
+- [WireGuard AllowedIPs calculator](https://wg.vpnsmith.com/allowedips): WireGuard has no exclude option; enter what the tunnel carries and what must stay out (a LAN, one IP, a range) and get the AllowedIPs line as the shortest list of CIDR blocks, IPv4 and IPv6.
+- [WireGuard config generator](https://www.vpnsmith.com/en/tools/wireguard-config-generator): server and client configs with keys generated in the browser, on vpnsmith.com.
+
+## Hosted manager
+- [Overview](https://wg.vpnsmith.com/): servers and peers in one dashboard, automatic IP allocation, keys generated server side and stored encrypted (AES-256-GCM), .conf downloads, QR codes, key rotation, import of an existing wg0.conf (keys and peers kept as they are).
+- [Pricing](https://wg.vpnsmith.com/pricing): Free plan, 1 server and 3 peers. Pro plan, 9 EUR per month, unlimited servers and peers, billed by Stripe, cancel from the billing portal (access runs to the end of the paid period).
+- [Terms of sale](https://wg.vpnsmith.com/terms) and [legal notice](https://wg.vpnsmith.com/legal).
