@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { FREE_LIMITS, PRO_PRICE_EUR, SITE } from "@/lib/site";
 import { recordHit } from "@/lib/stats";
+import { JsonLd, productLd } from "@/lib/jsonld";
 
 // ?ref= variants of / (vpnsmith boxes) must fold into one URL.
 export const metadata: Metadata = { alternates: { canonical: `${SITE}/` } };
@@ -12,6 +13,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
   await recordHit("/", ref);
   return (
     <>
+      <JsonLd data={productLd("Hosted WireGuard configuration manager: servers and peers in one dashboard, automatic IP allocation, keys stored encrypted, .conf downloads and QR codes, import of an existing wg0.conf.")} />
       <section className="hero">
         <div>
           <div className="kicker fade">Hosted WireGuard configuration manager</div>

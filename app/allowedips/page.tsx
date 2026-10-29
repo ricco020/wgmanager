@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { recordHit } from "@/lib/stats";
+import { JsonLd, toolLd } from "@/lib/jsonld";
 import { FREE_LIMITS, PRO_PRICE_EUR, SITE } from "@/lib/site";
 import { Calculator } from "./Calculator";
 
@@ -16,6 +17,7 @@ export default async function AllowedIpsPage({ searchParams }: { searchParams: P
   await recordHit("/allowedips", ref);
   return (
     <>
+      <JsonLd data={toolLd("/allowedips", "WireGuard AllowedIPs calculator", metadata.description as string, ["Exclude a LAN, a single IP or a range from a full tunnel", "Shortest list of CIDR blocks", "IPv4 and IPv6"])} />
       <section style={{ padding: "48px 0 20px" }}>
         <div className="fade" style={{ color: "var(--amber)", textTransform: "uppercase", letterSpacing: "0.14em", fontSize: 12, marginBottom: 14 }}>Free tool, no account</div>
         <h1 className="fade d1">WireGuard AllowedIPs calculator</h1>

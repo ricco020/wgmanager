@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { currentUser } from "@/lib/auth";
 import { recordHit } from "@/lib/stats";
+import { JsonLd, toolLd } from "@/lib/jsonld";
 import { SITE } from "@/lib/site";
 import { Checker } from "./Checker";
 
@@ -29,6 +30,7 @@ export default async function CheckPage({ searchParams }: { searchParams: Promis
   const user = await currentUser();
   return (
     <>
+      <JsonLd data={toolLd("/check", "WireGuard config checker", metadata.description as string, CHECKS.map(([k]) => k).concat(["Add a peer: next free IP, keys, client .conf and QR code"]))} />
       <section style={{ padding: "48px 0 20px" }}>
         <div className="fade" style={{ color: "var(--amber)", textTransform: "uppercase", letterSpacing: "0.14em", fontSize: 12, marginBottom: 14 }}>Free tool, no account</div>
         <h1 className="fade d1">WireGuard config checker</h1>
