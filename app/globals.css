@@ -131,6 +131,10 @@ textarea::placeholder { color: #7d8a9a; }
 .ws-actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin: 14px 0; }
 .preview { border: 1px dashed var(--line); border-radius: 10px; padding: 14px; }
 .pv-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 10px; }
+.pv-empty { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.5; }
+.pv-sample { margin-top: 10px; }
+.pv-sample summary { cursor: pointer; font-size: 14px; color: var(--text); }
+.pv-sample .findings { margin-top: 10px; }
 ul.findings li.f-pass { border-left-color: var(--green); }
 ul.findings li.f-pass b { color: var(--green); }
 .checklist { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }

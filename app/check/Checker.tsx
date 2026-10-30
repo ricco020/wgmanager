@@ -101,13 +101,16 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
       <div className="ck-diag-head"><span className="ws-title">Diagnostic</span><span className="muted ws-hint">{res ? (res.findings.length ? `${res.findings.length} finding${res.findings.length === 1 ? "" : "s"}` : "no finding") : "waiting for a file"}</span></div>
 
       {!res && (
-        <div className="preview" aria-hidden="true">
-          <div className="pv-label"><span className="tag">Sample</span> What a report looks like, for the broken example (not your file)</div>
+        <div className="preview">
+          <p className="pv-empty">Your diagnostic will appear here: errors first, then warnings, each with its line and the fix.</p>
+          <details className="pv-sample">
+          <summary>See a sample report (broken example, not your file)</summary>
           <ul className="findings">
             <li className="f-error"><b>Error</b><span className="muted"> [Peer] laptop, line 10</span><div>On a server, AllowedIPs <code>10.8.0.2/24</code> overlaps the phone&apos;s <code>10.8.0.3/32</code>; a single client address is usually <code>/32</code>.</div></li>
             <li className="f-warn"><b>Warning</b><span className="muted"> [Interface], line 5</span><div><code>MTU = 1500</code> on a standard 1500 link fragments once WireGuard adds its headers; 1420 is the usual value.</div></li>
             <li className="f-pass"><b>Passed</b><span className="muted"> keys</span><div>3 keys of 44 base64 characters, 32 bytes each.</div></li>
           </ul>
+          </details>
         </div>
       )}
 
