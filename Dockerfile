@@ -13,4 +13,4 @@ ENV NODE_ENV=production
 RUN npm run build
 EXPOSE 3000
 # "prisma db push" at startup keeps the schema in sync without a migration pipeline (v1).
-CMD ["npm", "run", "start"]
+CMD ["sh", "-c", "node_modules/.bin/prisma db push --skip-generate && exec node_modules/.bin/next start -p ${PORT:-3000}"]
