@@ -287,6 +287,13 @@ export function checkConfig(text: string): CheckResult {
     }
   }
 
+  // One line, one fix: an error and a warning on the same line become one finding (the error keeps the warning's copiable line).
+  for (const e of F.filter((x) => x.level === "error" && x.line)) {
+    const w = F.find((x) => x.level === "warn" && x.line === e.line && x.code);
+    if (!w) continue;
+    if (!e.code) { e.code = w.code; e.fix = `${e.fix} ${w.fix}`; }
+    F.splice(F.indexOf(w), 1);
+  }
   const order: Record<Level, number> = { error: 0, warn: 1, info: 2 };
   F.sort((x, y) => order[x.level] - order[y.level] || (x.line ?? 0) - (y.line ?? 0));
   return { kind, peers: peers.length, findings: F, privateEndpoint: privEp };

@@ -194,3 +194,12 @@ dl.fx-body dd { margin: 0; }
 textarea::selection { background: var(--amber); color: #0a0d12; }
 ol.findings.fx > li, dl.fx-body dd, .fx-code pre { min-width: 0; }
 dl.fx-body dd { overflow-wrap: anywhere; }
+.fx-summary strong { color: var(--text) !important; }
+.fx-summary .fx-n-err { color: var(--red); } .fx-summary .fx-n-warn { color: var(--amber); }
+.fx-summary.good .fx-n-err, .fx-summary.good .fx-n-warn { color: var(--green); }
+@media (max-width: 520px) {
+  .fx-head .fx-goto { margin-left: 0; flex-basis: 100%; order: 3; }
+  .fx-code { flex-direction: column; border: 0; padding: 10px; }
+  .fx-code pre { white-space: pre-wrap; word-break: break-all; }
+  .fx-code .fx-copy { align-self: flex-end; }
+}

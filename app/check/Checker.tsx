@@ -138,7 +138,7 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
       {res && counts && (
         <div className="panel fade" aria-live="polite">
           <div className={`fx-summary ${counts.error ? "bad" : counts.warn ? "mid" : "good"}`} role="status">
-            <strong>{counts.error} error{counts.error === 1 ? "" : "s"}, {counts.warn} warning{counts.warn === 1 ? "" : "s"}</strong>
+            <strong><span className="fx-n-err">{counts.error} error{counts.error === 1 ? "" : "s"}</span>, <span className="fx-n-warn">{counts.warn} warning{counts.warn === 1 ? "" : "s"}</span></strong>
             {counts.info ? <span>, {counts.info} note{counts.info === 1 ? "" : "s"}</span> : null}
             <span className="fx-sub">
               {res.kind === "wg-easy" ? "wg-easy data file: wg-quick does not read it." : counts.error ? "wg-quick refuses this file or the tunnel misroutes until the errors are fixed." : counts.warn ? "The file loads; the warnings cause known symptoms." : "Valid file. The connection itself is not tested here."}
