@@ -85,7 +85,7 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
         </div>
         <p className="privacy" style={{ margin: 0, borderRadius: 0, borderLeft: 0, borderRight: 0 }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
-          <span><b>Analysed locally in your browser.</b> Your configuration and private keys are not sent (<a href="#privacy">details</a>).</span>
+          <span><b>Analysed locally.</b> Your configuration and keys are not sent. <a href="#privacy">Privacy and telemetry</a></span>
         </p>
         <label className="sr" htmlFor="wgconf">Paste a wg0.conf (server) or a client .conf</label>
         <textarea id="wgconf" ref={ta} spellCheck={false} autoComplete="off" placeholder={"[Interface]\nPrivateKey = ...\nAddress = 10.8.0.2/32\n\n[Peer]\nPublicKey = ...\nEndpoint = vpn.example.com:51820\nAllowedIPs = 0.0.0.0/0, ::/0"} />

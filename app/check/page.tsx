@@ -88,15 +88,12 @@ export default async function CheckPage({ searchParams }: { searchParams: Promis
             </p>
           </details>
           <details id="privacy" open>
-            <summary>Privacy</summary>
-            <p className="muted">
-              The check runs entirely in this page&apos;s JavaScript. The config, private keys included, is not sent anywhere; we only
-              count that a check was run, with the file type and a rough peer count (no content, no IP address).
-            </p>
-            <p className="muted">
-              <b>Only if you import it into WireGuard Manager:</b> the file is sent at that moment, over HTTPS, and the keys are
-              stored encrypted (AES-256-GCM). Checking alone never uploads anything.
-            </p>
+            <summary>Privacy and telemetry</summary>
+            <ul className="muted">
+              <li><b>Stays in this page:</b> the whole file, private keys included. The check runs in this page&apos;s JavaScript.</li>
+              <li><b>Counted:</b> that a check ran, with the file type and a rough peer count. No content, no IP address.</li>
+              <li><b>Sent only if you import it into WireGuard Manager:</b> the file, over HTTPS, keys stored encrypted (AES-256-GCM).</li>
+            </ul>
           </details>
         </section>
       </div>
