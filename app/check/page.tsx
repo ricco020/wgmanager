@@ -68,7 +68,7 @@ export default async function CheckPage({ searchParams }: { searchParams: Promis
         <section className="panel">
           <h2>Limits, local routes and privacy</h2>
           <p className="muted" style={{ fontSize: 14 }}>
-            The checker reads text, never your network. Your config stays in this page.
+            The checker reads text, never your network.
           </p>
           <details>
             <summary>Full tunnel, but the printer and the NAS must stay local?</summary>
@@ -91,8 +91,11 @@ export default async function CheckPage({ searchParams }: { searchParams: Promis
             <summary>Privacy</summary>
             <p className="muted">
               The check runs entirely in this page&apos;s JavaScript. The config, private keys included, is not sent anywhere; we only
-              count that a check was run. If you choose to import the file into WireGuard Manager afterwards, it is sent then, over
-              HTTPS, and the keys are stored encrypted (AES-256-GCM).
+              count that a check was run, with the file type and a rough peer count (no content, no IP address).
+            </p>
+            <p className="muted">
+              <b>Only if you import it into WireGuard Manager:</b> the file is sent at that moment, over HTTPS, and the keys are
+              stored encrypted (AES-256-GCM). Checking alone never uploads anything.
             </p>
           </details>
         </section>
