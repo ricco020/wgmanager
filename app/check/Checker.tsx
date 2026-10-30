@@ -30,6 +30,26 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
   const [text, setText] = useState("");
   const [endpoint, setEndpoint] = useState("");
   const [fromGen, setFromGen] = useState(false);
+  const [copied, setCopied] = useState<number | null>(null);
+
+  /** Selects line n of the textarea and scrolls it into view, so the fix is applied where the problem is. */
+  function goToLine(n: number) {
+    const el = ta.current;
+    if (!el) return;
+    const ls = el.value.split("\n");
+    if (n < 1 || n > ls.length) return;
+    let start = 0;
+    for (let i = 0; i < n - 1; i++) start += ls[i].length + 1;
+    el.focus({ preventScroll: true });
+    el.setSelectionRange(start, start + ls[n - 1].length);
+    const lh = parseFloat(getComputedStyle(el).lineHeight) || 20;
+    el.scrollTop = Math.max(0, (n - 3) * lh);
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  function copy(code: string, i: number) {
+    navigator.clipboard?.writeText(code).then(() => { setCopied(i); setTimeout(() => setCopied((c) => (c === i ? null : c)), 1500); }).catch(() => {});
+  }
 
   function run(source = "") {
     const t = ta.current?.value ?? "";
@@ -37,6 +57,7 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
     const r = checkConfig(t);
     setRes(r);
     setText(t);
+    setCopied(null);
     // One column under 900px: the report sits below the editor, so bring it into view.
     if (window.matchMedia("(max-width: 900px)").matches) {
       requestAnimationFrame(() => diag.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
@@ -102,7 +123,7 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
 
       {!res && (
         <div className="preview">
-          <p className="pv-empty">Your diagnostic will appear here: errors first, then warnings, each with its line and the fix.</p>
+          <p className="pv-empty">Your diagnostic will appear here: a count of errors and warnings, then each problem with its consequence, a fix you can copy and a button that selects the line in your file.</p>
           <details className="pv-sample">
           <summary>See a sample report (broken example, not your file)</summary>
           <ul className="findings">
@@ -116,25 +137,39 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
 
       {res && counts && (
         <div className="panel fade" aria-live="polite">
-          {res.kind !== "unknown" && <h3 style={{ margin: "0 0 10px" }}>{res.kind === "wg-easy" ? "wg-easy data file: wg-quick does not read it" : counts.error ? `${counts.error} error${counts.error === 1 ? "" : "s"} to fix in this file` : "Valid file. The connection itself is not tested here."}</h3>}
-          <p style={{ marginBottom: 14 }}>
-            <span className="tag">{res.kind === "unknown" ? "type unclear" : `${res.kind} config`}</span>{" "}
-            <span className="tag">{res.peers} peer{res.peers === 1 ? "" : "s"}</span>{" "}
-            <span className="tag" style={counts.error ? { borderColor: "var(--red)", color: "var(--red)" } : { borderColor: "var(--green)", color: "var(--green)" }}>{counts.error} error{counts.error === 1 ? "" : "s"}</span>{" "}
-            <span className="tag">{counts.warn} warning{counts.warn === 1 ? "" : "s"}</span>
-          </p>
+          <div className={`fx-summary ${counts.error ? "bad" : counts.warn ? "mid" : "good"}`} role="status">
+            <strong>{counts.error} error{counts.error === 1 ? "" : "s"}, {counts.warn} warning{counts.warn === 1 ? "" : "s"}</strong>
+            {counts.info ? <span>, {counts.info} note{counts.info === 1 ? "" : "s"}</span> : null}
+            <span className="fx-sub">
+              {res.kind === "wg-easy" ? "wg-easy data file: wg-quick does not read it." : counts.error ? "wg-quick refuses this file or the tunnel misroutes until the errors are fixed." : counts.warn ? "The file loads; the warnings cause known symptoms." : "Valid file. The connection itself is not tested here."}
+              {" "}{res.kind === "unknown" ? "Type unclear" : `${res.kind[0].toUpperCase()}${res.kind.slice(1)} config`}, {res.peers} peer{res.peers === 1 ? "" : "s"}.
+            </span>
+          </div>
           {res.findings.length === 0 ? (
             <div className="ok">Keys are well-formed, addresses and routes are consistent.</div>
           ) : (
-            <ul className="findings">
+            <ol className="findings fx">
               {res.findings.map((f, i) => (
                 <li key={i} className={`f-${f.level}`}>
-                  <b>{f.level === "error" ? "Error" : f.level === "warn" ? "Warning" : "Note"}</b>
-                  <span className="muted"> {f.where}{f.line ? `, line ${f.line}` : ""}</span>
-                  <div>{f.msg}</div>
+                  <div className="fx-head">
+                    <b>{f.level === "error" ? "Error" : f.level === "warn" ? "Warning" : "Note"}</b>
+                    <span className="muted"> {f.where}{f.line ? `, line ${f.line}` : ""}</span>
+                    {f.line ? <button type="button" className="fx-goto" onClick={() => goToLine(f.line as number)}>Go to line {f.line}</button> : null}
+                  </div>
+                  <dl className="fx-body">
+                    <dt>Problem</dt><dd>{f.problem}</dd>
+                    <dt>Consequence</dt><dd>{f.consequence}</dd>
+                    <dt>Fix</dt><dd>{f.fix}</dd>
+                  </dl>
+                  {f.code && (
+                    <div className="fx-code">
+                      <pre><code>{f.code}</code></pre>
+                      <button type="button" className="fx-copy" onClick={() => copy(f.code as string, i)}>{copied === i ? "Copied" : "Copy"}</button>
+                    </div>
+                  )}
                 </li>
               ))}
-            </ul>
+            </ol>
           )}
 
           {res.privateEndpoint && (

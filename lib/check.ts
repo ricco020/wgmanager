@@ -8,7 +8,9 @@ export const HANDOFF_KEY = "wg_check_conf";
 export const EP_KEY = "wg_check_ep";
 
 export type Level = "error" | "warn" | "info";
-export type Finding = { level: Level; where: string; line?: number; msg: string };
+/** problem: what is wrong in the file. consequence: what wg/wg-quick or the network does with it. fix: what to change,
+ *  with code: the exact line(s) to paste when a single replacement exists. msg joins problem and consequence (QR tool). */
+export type Finding = { level: Level; where: string; line?: number; problem: string; consequence: string; fix: string; code?: string; msg: string };
 export type CheckResult = {
   kind: "server" | "client" | "unknown" | "wg-easy";
   peers: number;
@@ -81,12 +83,19 @@ function list(v: string): string[] {
 
 type Entry = { key: string; value: string; line: number };
 type Section = { name: "interface" | "peer"; line: number; label: string; entries: Entry[] };
+type Parts = { p: string; c: string; f: string; code?: string };
+
+function mk(level: Level, where: string, x: Parts, line?: number): Finding {
+  return { level, where, line, problem: x.p, consequence: x.c, fix: x.f, code: x.code, msg: `${x.p} ${x.c}` };
+}
+/** Copiable replacement for a "Key = value" line (keys written in their canonical case). */
+const kv = (k: string, v: string) => `${CANON[k] ?? k} = ${v}`;
 
 export function checkConfig(text: string): CheckResult {
   const F: Finding[] = [];
   let privEp = false;
-  const add = (level: Level, where: string, msg: string, line?: number) => F.push({ level, where, msg, line });
-  if (text.length > 200_000) return { kind: "unknown", peers: 0, findings: [{ level: "error", where: "File", msg: "File too large (200 KB max)." }] };
+  const add = (level: Level, where: string, x: Parts, line?: number) => F.push(mk(level, where, x, line));
+  if (text.length > 200_000) return { kind: "unknown", peers: 0, findings: [mk("error", "File", { p: "The file is larger than 200 KB.", c: "It is not analysed: a WireGuard config is a few KB.", f: "Paste only the .conf file, without logs or other files." })] };
   if (text.trim().startsWith("{")) return checkWgEasyJson(text);
 
   const sections: Section[] = [];
@@ -108,12 +117,12 @@ export function checkConfig(text: string): CheckResult {
     if (sec) {
       const name = sec[1].toLowerCase();
       if (name === "interface" || name === "peer") sections.push({ name, line: n, label: pending, entries: [] });
-      else add("error", "File", `Unknown section [${sec[1]}]. Only [Interface] and [Peer] exist; wg-quick refuses the file.`, n);
+      else add("error", "File", { p: `Unknown section [${sec[1]}].`, c: "Only [Interface] and [Peer] exist; wg-quick refuses the whole file.", f: "Rename the header to [Interface] or [Peer], or delete the section." }, n);
       pending = "";
       return;
     }
     const eq = line.indexOf("=");
-    if (eq < 0) { add("error", "File", `"${line.slice(0, 40)}" is not a "Key = value" line; wg-quick stops here.`, n); return; }
+    if (eq < 0) { add("error", "File", { p: `"${line.slice(0, 40)}" is not a "Key = value" line.`, c: "wg-quick stops reading at this line and the interface does not come up.", f: "Write it as Key = value, or comment it out with # at the start of the line." }, n); return; }
     const key = line.slice(0, eq).trim().toLowerCase();
     let value = line.slice(eq + 1).trim();
     const hash = value.indexOf("#");
@@ -121,23 +130,24 @@ export function checkConfig(text: string): CheckResult {
     const cur = sections[sections.length - 1];
     const peerNo = sections.filter((x) => x.name === "peer").length;
     const where = cur?.name === "peer" ? `[Peer] ${peerNo}${cur.label ? ` (${cur.label})` : ""}` : "[Interface]";
-    if (!cur) { add("error", "File", `${line.slice(0, eq).trim()} appears before any [Interface] or [Peer] header.`, n); return; }
+    if (!cur) { add("error", "File", { p: `${line.slice(0, eq).trim()} appears before any [Interface] or [Peer] header.`, c: "wg-quick does not know which section it belongs to and refuses the file.", f: "Move the line under the right header; the file starts with [Interface]." }, n); return; }
     const allowed = cur.name === "interface" ? IFACE_KEYS : PEER_KEYS;
     if (!allowed.has(key)) {
       const other = cur.name === "interface" ? PEER_KEYS : IFACE_KEYS;
-      add("error", where,
-        other.has(key) ? `${CANON[key]} belongs in ${cur.name === "interface" ? "a [Peer]" : "[Interface]"} section, not here.` : `Unknown key "${line.slice(0, eq).trim()}" (typo?). wg-quick reports "Line unrecognized" and refuses the file.`, n);
+      add("error", where, other.has(key)
+        ? { p: `${CANON[key]} is in the wrong section.`, c: `It belongs in ${cur.name === "interface" ? "a [Peer]" : "[Interface]"}; wg-quick reports "Line unrecognized" and refuses the file.`, f: `Move this line under ${cur.name === "interface" ? "the [Peer] it describes" : "[Interface]"}.` }
+        : { p: `Unknown key "${line.slice(0, eq).trim()}" (typo?).`, c: 'wg-quick reports "Line unrecognized" and refuses the file.', f: `Check the spelling. Valid keys here: ${[...allowed].map((k) => CANON[k]).join(", ")}.` }, n);
       return;
     }
-    if (SINGLE.has(key) && cur.entries.some((e) => e.key === key)) add("warn", where, `${CANON[key]} is set twice in the same section; only the last value is used.`, n);
+    if (SINGLE.has(key) && cur.entries.some((e) => e.key === key)) add("warn", where, { p: `${CANON[key]} is set twice in the same section.`, c: "Only the last value is used; the earlier line is silently ignored.", f: "Delete the line you do not want." }, n);
     cur.entries.push({ key, value, line: n });
   });
 
   const ifaces = sections.filter((s) => s.name === "interface");
   const peers = sections.filter((s) => s.name === "peer");
-  if (ifaces.length === 0) add("error", "File", "No [Interface] section. Every WireGuard config starts with one.");
-  if (ifaces.length > 1) add("error", "File", `${ifaces.length} [Interface] sections. One file describes one interface: split it into two files.`, ifaces[1].line);
-  if (peers.length === 0 && ifaces.length) add("warn", "File", "No [Peer] section: the interface comes up but cannot talk to anyone.");
+  if (ifaces.length === 0) add("error", "File", { p: "No [Interface] section.", c: "Without it there is no key and no address: the file is not a WireGuard config.", f: "Start the file with an [Interface] section.", code: "[Interface]\nPrivateKey = <output of wg genkey>\nAddress = 10.8.0.2/32" });
+  if (ifaces.length > 1) add("error", "File", { p: `${ifaces.length} [Interface] sections.`, c: "One file describes one interface; wg-quick refuses the file.", f: "Split it into two files (wg0.conf, wg1.conf), one [Interface] each." }, ifaces[1].line);
+  if (peers.length === 0 && ifaces.length) add("warn", "File", { p: "No [Peer] section.", c: "The interface comes up but cannot talk to anyone.", f: "Add one [Peer] per device or server this machine connects to.", code: "[Peer]\nPublicKey = <the other side's public key>\nAllowedIPs = 10.8.0.2/32" });
 
   const get = (s: Section, k: string) => s.entries.filter((e) => e.key === k);
   const one = (s: Section, k: string) => { const e = get(s, k); return e.length ? e[e.length - 1] : undefined; };
@@ -153,46 +163,51 @@ export function checkConfig(text: string): CheckResult {
   if (iface) {
     const W = "[Interface]";
     const pk = one(iface, "privatekey");
-    if (!pk) add("error", W, "PrivateKey is missing. Without it the interface has no identity.", iface.line);
-    else { privKey = pk.value; const p = keyProblem(pk.value); if (p) add("error", W, `PrivateKey ${p}.`, pk.line); }
+    if (!pk) add("error", W, { p: "PrivateKey is missing.", c: "Without it the interface has no identity and wg-quick refuses to start.", f: "Generate a key with wg genkey and add it under [Interface].", code: "PrivateKey = <output of wg genkey>" }, iface.line);
+    else { privKey = pk.value; const p = keyProblem(pk.value); if (p) add("error", W, { p: `PrivateKey ${p}.`, c: 'wg-quick stops with "Key is not the correct length or format".', f: "Copy the key again in full from the source (44 characters ending with =), or generate a new pair with wg genkey | tee priv | wg pubkey." }, pk.line); }
 
     const addrs = get(iface, "address");
-    if (!addrs.length) add(kind === "client" ? "error" : "warn", W, "Address is missing: the tunnel interface gets no IP, so nothing can be routed through it.", iface.line);
+    if (!addrs.length) add(kind === "client" ? "error" : "warn", W, { p: "Address is missing.", c: "The tunnel interface gets no IP, so nothing can be routed through it.", f: kind === "server" ? "Give the server the first address of the tunnel subnet." : "Give this device its own tunnel address, as allowed by the server.", code: kv("address", kind === "server" ? "10.8.0.1/24" : "10.8.0.2/32") }, iface.line);
     for (const a of addrs) for (const c of list(a.value)) {
       const x = v4(c, 32);
       if (x) { ifaceNets.push(x); ifaceIps.push(ipInt(c) as number); }
-      else if (!v6ok(c)) add("error", W, `Address "${c}" is not a valid IPv4 or IPv6 address with prefix.`, a.line);
+      else if (!v6ok(c)) add("error", W, { p: `Address "${c}" is not a valid IPv4 or IPv6 address with prefix.`, c: "wg-quick fails when it runs ip address add.", f: "Write an address followed by its prefix.", code: kv("address", "10.8.0.2/32") }, a.line);
     }
-    if (kind === "server" && ifaceNets.some((n) => n.prefix === 32) && peers.length > 1)
-      add("warn", W, "Server Address uses /32: the kernel will not route the other tunnel addresses to wg0. Use the subnet prefix, for example 10.8.0.1/24.", addrs[0]?.line);
+    if (kind === "server" && peers.length > 1) {
+      const a32 = addrs.find((a) => list(a.value).some((c) => v4(c, 32)?.prefix === 32));
+      if (a32) {
+        const ip = list(a32.value).find((c) => v4(c, 32)?.prefix === 32)!.split("/")[0];
+        add("warn", W, { p: "The server Address uses /32.", c: "The kernel does not route the other tunnel addresses to wg0: clients reach the server but not each other.", f: "Use the prefix of the whole tunnel subnet.", code: kv("address", `${ip}/24`) }, a32.line);
+      }
+    }
 
     const lp = one(iface, "listenport");
-    if (lp) { const v = Number(lp.value); if (!Number.isInteger(v) || v < 1 || v > 65535) add("error", W, `ListenPort "${lp.value}" must be a number between 1 and 65535.`, lp.line); }
-    else if (kind === "server") add("warn", W, "ListenPort is missing: the server picks a random UDP port at each start, so clients cannot reach it reliably. Set ListenPort = 51820.", iface.line);
+    if (lp) { const v = Number(lp.value); if (!Number.isInteger(v) || v < 1 || v > 65535) add("error", W, { p: `ListenPort "${lp.value}" is not a port number.`, c: "wg-quick refuses the value and the interface does not come up.", f: "Use a UDP port between 1 and 65535; 51820 is the default.", code: kv("listenport", "51820") }, lp.line); }
+    else if (kind === "server") add("warn", W, { p: "ListenPort is missing on a server.", c: "The server picks a random UDP port at each start, so clients cannot reach it reliably.", f: "Fix the port and open it over UDP in the firewall.", code: kv("listenport", "51820") }, iface.line);
 
     const mtu = one(iface, "mtu");
     if (mtu) {
       const v = Number(mtu.value);
-      if (!Number.isInteger(v)) add("error", W, `MTU "${mtu.value}" is not a number.`, mtu.line);
-      else if (v < 1280) add("error", W, `MTU ${v} is below 1280, the IPv6 minimum: IPv6 through the tunnel breaks. 1280 is the safe floor.`, mtu.line);
-      else if (v > 1420) add("warn", W, `MTU ${v} is above 1420. WireGuard adds 60 to 80 bytes of headers, so on a 1500 link anything above 1420 fragments: pages that load halfway and stalled SSH are the usual symptom.`, mtu.line);
+      if (!Number.isInteger(v)) add("error", W, { p: `MTU "${mtu.value}" is not a number.`, c: "wg-quick fails when it sets the link MTU.", f: "Use 1420, or delete the line and let wg-quick compute it.", code: kv("mtu", "1420") }, mtu.line);
+      else if (v < 1280) add("error", W, { p: `MTU ${v} is below 1280, the IPv6 minimum.`, c: "IPv6 through the tunnel breaks.", f: "1280 is the safe floor; 1420 is the usual value.", code: kv("mtu", "1280") }, mtu.line);
+      else if (v > 1420) add("warn", W, { p: `MTU ${v} is above 1420.`, c: "WireGuard adds 60 to 80 bytes of headers, so on a 1500 link larger packets fragment: pages that load halfway and stalled SSH are the usual symptom.", f: "Use 1420 (1380 behind PPPoE or a mobile network).", code: kv("mtu", "1420") }, mtu.line);
     }
 
     const dns = get(iface, "dns");
-    if (dns.length && kind === "server") add("warn", W, "DNS on a server: wg-quick rewrites the server's own resolver when the tunnel comes up. DNS belongs in client files.", dns[0].line);
-    for (const d of dns) for (const c of list(d.value)) if (!v4(c, 32) && !v6ok(c) && !/^[a-zA-Z0-9.-]+$/.test(c)) add("error", W, `DNS entry "${c}" is neither an IP nor a search domain.`, d.line);
-    if (dns.length) add("info", W, "On Linux, wg-quick applies this DNS line through resolvconf. If wg-quick stops with \"resolvconf: command not found\", first run \"systemctl is-active systemd-resolved\": if it is active, install its shim (apt install systemd-resolvconf on Debian and Ubuntu) rather than a second manager; otherwise install openresolv. Or drop the DNS line if this machine should keep its own resolver.", dns[0].line);
+    if (dns.length && kind === "server") add("warn", W, { p: "DNS is set on a server.", c: "wg-quick rewrites the server's own resolver when the tunnel comes up; the server can lose name resolution.", f: "Delete this line here and put DNS in the client files." }, dns[0].line);
+    for (const d of dns) for (const c of list(d.value)) if (!v4(c, 32) && !v6ok(c) && !/^[a-zA-Z0-9.-]+$/.test(c)) add("error", W, { p: `DNS entry "${c}" is neither an IP nor a search domain.`, c: "resolvconf rejects it and wg-quick stops.", f: "Use resolver IPs separated by commas.", code: kv("dns", "1.1.1.1, 2606:4700:4700::1111") }, d.line);
+    if (dns.length) add("info", W, { p: "On Linux, wg-quick applies this DNS line through resolvconf.", c: 'If resolvconf is missing, wg-quick stops with "resolvconf: command not found".', f: 'Run systemctl is-active systemd-resolved: if active, install its shim (apt install systemd-resolvconf on Debian and Ubuntu); otherwise install openresolv. Or drop the DNS line if this machine should keep its own resolver.' }, dns[0].line);
 
     const sc = one(iface, "saveconfig");
-    if (sc && /^true$/i.test(sc.value)) add("warn", W, "SaveConfig = true: wg-quick overwrites this file when the interface goes down. Edits made by hand while it runs are lost.", sc.line);
+    if (sc && /^true$/i.test(sc.value)) add("warn", W, { p: "SaveConfig = true.", c: "wg-quick overwrites this file when the interface goes down: edits made by hand while it runs are lost.", f: "Set it to false if you edit the file by hand.", code: kv("saveconfig", "false") }, sc.line);
 
     const post = get(iface, "postup");
     const masq = post.find((e) => /MASQUERADE/i.test(e.value));
     if (masq) {
       const m = /-o\s+(\S+)/.exec(masq.value);
-      if (m) add("info", W, `NAT goes out through "${m[1].replace(/;$/, "")}". If clients connect but have no internet, compare it with the interface shown by "ip route show default" on the server.`, masq.line);
+      if (m) add("info", W, { p: `NAT goes out through "${m[1].replace(/;$/, "")}".`, c: "If that is not the server's real outgoing interface, clients connect but have no internet.", f: 'Compare it with the interface shown by "ip route show default" on the server (often eth0, ens3 or enp1s0).' }, masq.line);
     } else if (kind === "server" && peers.some((p) => get(p, "allowedips").some(() => true))) {
-      add("info", W, "No MASQUERADE rule in PostUp. Fine for a site-to-site or LAN-only tunnel; full-tunnel clients will have no internet access without NAT and net.ipv4.ip_forward=1.");
+      add("info", W, { p: "No MASQUERADE rule in PostUp.", c: "Fine for a site-to-site or LAN-only tunnel; full-tunnel clients have no internet access without NAT.", f: "For full tunnel, add NAT and enable forwarding (sysctl -w net.ipv4.ip_forward=1). Replace eth0 with the interface of ip route show default.", code: "PostUp = iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE\nPostDown = iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE" });
     }
   }
 
@@ -201,19 +216,19 @@ export function checkConfig(text: string): CheckResult {
   peers.forEach((p, i) => {
     const W = `[Peer] ${i + 1}${p.label ? ` (${p.label})` : ""}`;
     const pub = one(p, "publickey");
-    if (!pub) add("error", W, "PublicKey is missing: wg-quick refuses a peer without one.", p.line);
+    if (!pub) add("error", W, { p: "PublicKey is missing.", c: "wg-quick refuses a peer without one.", f: "Paste the other side's public key (wg pubkey < its private key).", code: "PublicKey = <the other side's public key>" }, p.line);
     else {
       const pr = keyProblem(pub.value);
-      if (pr) add("error", W, `PublicKey ${pr}.`, pub.line);
-      if (privKey && pub.value === privKey) add("error", W, "PublicKey is the same string as your [Interface] PrivateKey. You pasted the private key where the other side's public key goes.", pub.line);
-      if (seenKeys.has(pub.value)) add("error", W, `Same PublicKey as peer ${seenKeys.get(pub.value)}. wg keeps only one of them: one device will never connect.`, pub.line);
+      if (pr) add("error", W, { p: `PublicKey ${pr}.`, c: 'wg-quick stops with "Key is not the correct length or format".', f: "Copy the public key again in full from the other device (44 characters ending with =)." }, pub.line);
+      if (privKey && pub.value === privKey) add("error", W, { p: "PublicKey is the same string as your [Interface] PrivateKey.", c: "You pasted the private key where the other side's public key goes: the handshake can never succeed, and the private key is exposed.", f: "Replace it with the other side's public key, and generate a new key pair for this interface." }, pub.line);
+      if (seenKeys.has(pub.value)) add("error", W, { p: `Same PublicKey as peer ${seenKeys.get(pub.value)}.`, c: "wg keeps only one of them: one device will never connect.", f: "Each device needs its own key pair: generate one for this device and paste its public key here." }, pub.line);
       else seenKeys.set(pub.value, i + 1);
     }
     const psk = one(p, "presharedkey");
-    if (psk) { const pr = keyProblem(psk.value); if (pr) add("error", W, `PresharedKey ${pr}.`, psk.line); }
+    if (psk) { const pr = keyProblem(psk.value); if (pr) add("error", W, { p: `PresharedKey ${pr}.`, c: "wg-quick refuses the key.", f: "Copy it again in full, or generate one with wg genpsk and put the same value on both sides." }, psk.line); }
 
     const aips = get(p, "allowedips");
-    if (!aips.length) add("warn", W, "AllowedIPs is missing: no traffic is accepted from or sent to this peer.", p.line);
+    if (!aips.length) add("warn", W, { p: "AllowedIPs is missing.", c: "No traffic is accepted from or sent to this peer.", f: kind === "client" ? "For a full tunnel:" : "Give this peer its tunnel address:", code: kv("allowedips", kind === "client" ? "0.0.0.0/0, ::/0" : "10.8.0.2/32") }, p.line);
     const all = aips.flatMap((a) => list(a.value).map((c) => ({ c, line: a.line })));
     let v4full = false, v6full = false;
     for (const { c, line } of all) {
@@ -221,43 +236,53 @@ export function checkConfig(text: string): CheckResult {
       const x = v4(c, 32);
       if (x) {
         if (x.prefix === 0) v4full = true;
-        if (x.hostBits) add("warn", W, `AllowedIPs ${c} has host bits set; wg turns it into ${fmt(x)}. ${kind === "server" ? `On a server that sends the whole ${fmt(x)} range to this one peer. A single client should be ${c.split("/")[0]}/32.` : "Write the network address to avoid surprises."}`, line);
+        if (x.hostBits) {
+          const host = `${c.split("/")[0]}/32`;
+          add("warn", W, kind === "server"
+            ? { p: `AllowedIPs ${c} has host bits set.`, c: `wg turns it into ${fmt(x)}: the server sends the whole range to this one peer.`, f: "A single client takes a /32.", code: kv("allowedips", all.filter((y) => y.line === line).map((y) => (y.c === c ? host : y.c)).join(", ")) }
+            : { p: `AllowedIPs ${c} has host bits set.`, c: `wg silently turns it into ${fmt(x)}.`, f: "Write the network address.", code: kv("allowedips", all.filter((y) => y.line === line).map((y) => (y.c === c ? fmt(x) : y.c)).join(", ")) }, line);
+        }
         routes.push({ net: x, peer: i + 1, line });
-        if (kind === "server" && x.prefix === 32 && ifaceIps.includes(x.base)) add("error", W, `AllowedIPs ${c} is the server's own tunnel address.`, line);
-        if (kind === "server" && x.prefix === 32 && ifaceNets.length && !ifaceNets.some((n) => overlap(n, x))) add("warn", W, `${c} is outside the server subnet (${ifaceNets.map(fmt).join(", ")}). It works only if the client uses that address and you route it yourself.`, line);
-      } else if (!v6ok(c)) add("error", W, `AllowedIPs entry "${c}" is not a valid address with prefix.`, line);
+        if (kind === "server" && x.prefix === 32 && ifaceIps.includes(x.base)) add("error", W, { p: `AllowedIPs ${c} is the server's own tunnel address.`, c: "Traffic for the server itself is sent to this peer.", f: "Give this peer its own free address in the subnet." }, line);
+        if (kind === "server" && x.prefix === 32 && ifaceNets.length && !ifaceNets.some((n) => overlap(n, x))) add("warn", W, { p: `${c} is outside the server subnet (${ifaceNets.map(fmt).join(", ")}).`, c: "It works only if the client uses that address and you route it yourself.", f: "Use an address inside the server subnet, and the same one in the client's Address." }, line);
+      } else if (!v6ok(c)) add("error", W, { p: `AllowedIPs entry "${c}" is not a valid address with prefix.`, c: "wg-quick refuses the file.", f: "Write each entry as address/prefix, separated by commas." }, line);
     }
-    if (kind === "server" && v4full && peers.length > 1) add("error", W, "AllowedIPs 0.0.0.0/0 on a server peer routes ALL traffic to this one peer and starves the others. Give each client its own /32.", aips[0]?.line);
+    if (kind === "server" && v4full && peers.length > 1) add("error", W, { p: "AllowedIPs 0.0.0.0/0 on a server peer.", c: "It routes ALL traffic to this one peer and starves the others.", f: "Give each client its own /32 (0.0.0.0/0 belongs in the client file).", code: kv("allowedips", "10.8.0.2/32") }, aips[0]?.line);
 
     const ep = one(p, "endpoint");
     if (ep) {
       const m = /^(\[[0-9a-fA-F:.]+\]|[^:\s]+):(\d{1,5})$/.exec(ep.value);
-      if (!m) add("error", W, `Endpoint "${ep.value}" must be host:port, for example vpn.example.com:51820 (IPv6 in brackets: [2001:db8::1]:51820).`, ep.line);
+      if (!m) add("error", W, { p: `Endpoint "${ep.value}" is not host:port.`, c: "wg-quick refuses the file.", f: "Write the server name or IP, a colon, then the UDP port (IPv6 in brackets: [2001:db8::1]:51820).", code: kv("endpoint", `${ep.value.split(":")[0] || "vpn.example.com"}:51820`) }, ep.line);
       else {
         const port = Number(m[2]);
-        if (port < 1 || port > 65535) add("error", W, `Endpoint port ${port} is out of range.`, ep.line);
+        if (port < 1 || port > 65535) add("error", W, { p: `Endpoint port ${port} is out of range.`, c: "wg-quick refuses the value.", f: "Use the server's ListenPort, usually 51820.", code: kv("endpoint", `${m[1]}:51820`) }, ep.line);
         const ipn = ipInt(m[1]);
         if (ipn !== null && isPrivate(ipn)) privEp = true;
-        if (ipn !== null && isPrivate(ipn)) add("warn", W, `Endpoint ${m[1]} is a private address: this config only works from inside that network, not from mobile data or another Wi-Fi.`, ep.line);
+        if (ipn !== null && isPrivate(ipn)) add("warn", W, { p: `Endpoint ${m[1]} is a private address.`, c: "This config only works from inside that network, not from mobile data or another Wi-Fi.", f: "Put the public IP or a dynamic DNS name of the server, with the UDP port forwarded on the router.", code: kv("endpoint", `your-name.duckdns.org:${m[2]}`) }, ep.line);
       }
-    } else if (kind === "client") add("error", W, "Endpoint is missing: a client without Endpoint can never start the handshake.", p.line);
+    } else if (kind === "client") add("error", W, { p: "Endpoint is missing.", c: "A client without Endpoint can never start the handshake.", f: "Add the server's public address and UDP port.", code: kv("endpoint", "vpn.example.com:51820") }, p.line);
 
     const ka = one(p, "persistentkeepalive");
     if (ka) {
       const v = /^off$/i.test(ka.value) ? 0 : Number(ka.value);
-      if (!Number.isInteger(v) || v < 0 || v > 65535) add("error", W, `PersistentKeepalive "${ka.value}" must be 0 to 65535 seconds or "off".`, ka.line);
-      else if (v > 0 && v < 10) add("warn", W, `PersistentKeepalive ${v} s is very short: battery and data cost on phones for no gain. 25 is the usual value.`, ka.line);
-    } else if (kind === "client") add("info", W, "No PersistentKeepalive. Behind NAT (home router, mobile data) the tunnel goes silent after idle and the server cannot reach you. Add PersistentKeepalive = 25 if that matters.", p.line);
+      if (!Number.isInteger(v) || v < 0 || v > 65535) add("error", W, { p: `PersistentKeepalive "${ka.value}" is not valid.`, c: "wg-quick refuses the value.", f: 'Use 0 to 65535 seconds or "off"; 25 is the usual value.', code: kv("persistentkeepalive", "25") }, ka.line);
+      else if (v > 0 && v < 10) add("warn", W, { p: `PersistentKeepalive ${v} s is very short.`, c: "Battery and data cost on phones for no gain.", f: "25 seconds keeps NAT mappings open.", code: kv("persistentkeepalive", "25") }, ka.line);
+    } else if (kind === "client") add("info", W, { p: "No PersistentKeepalive.", c: "Behind NAT (home router, mobile data) the tunnel goes silent after idle and the server cannot reach you.", f: "Add it under this [Peer] if the server must reach this device.", code: kv("persistentkeepalive", "25") }, p.line);
 
-    if (kind === "client" && v4full && !v6full) add("warn", W, "Full tunnel for IPv4 (0.0.0.0/0) but not IPv6: on a network with IPv6, part of your traffic leaves outside the tunnel. Add ::/0 to AllowedIPs.", aips[0]?.line);
-    if (kind === "client" && (v4full || v6full) && iface && !get(iface, "dns").length) add("warn", "[Interface]", "Full tunnel without DNS: name lookups still go to the local network's resolver (a DNS leak). Add DNS = 1.1.1.1 or your own resolver.", iface.line);
+    if (kind === "client" && v4full && !v6full) {
+      const l = aips.find((a) => list(a.value).includes("0.0.0.0/0"));
+      add("warn", W, { p: "Full tunnel for IPv4 (0.0.0.0/0) but not IPv6.", c: "On a network with IPv6, part of your traffic leaves outside the tunnel.", f: "Add ::/0 to AllowedIPs.", code: kv("allowedips", [...list(l?.value ?? "0.0.0.0/0"), "::/0"].join(", ")) }, l?.line ?? aips[0]?.line);
+    }
+    if (kind === "client" && (v4full || v6full) && iface && !get(iface, "dns").length) add("warn", "[Interface]", { p: "Full tunnel without DNS.", c: "Name lookups still go to the local network's resolver: a DNS leak.", f: "Add a resolver under [Interface].", code: kv("dns", "1.1.1.1, 2606:4700:4700::1111") }, iface.line);
   });
 
   if (kind === "server") {
     for (let a = 0; a < routes.length; a++) for (let b = a + 1; b < routes.length; b++) {
       const r1 = routes[a], r2 = routes[b];
       if (r1.peer !== r2.peer && overlap(r1.net, r2.net)) {
-        add("error", `[Peer] ${r2.peer}`, `AllowedIPs ${fmt(r2.net)} overlaps ${fmt(r1.net)} of peer ${r1.peer}. wg gives the range to the last peer loaded, so peer ${r1.peer} silently stops receiving traffic. This is the classic "handshake OK, no traffic" bug.`, r2.line);
+        // Point at the wider range: it is almost always the line to change (a client given a /24 instead of a /32).
+        const wide = r1.net.prefix <= r2.net.prefix ? r1 : r2, narrow = wide === r1 ? r2 : r1;
+        add("error", `[Peer] ${wide.peer}`, { p: `AllowedIPs ${fmt(wide.net)} of peer ${wide.peer} overlaps ${fmt(narrow.net)} of peer ${narrow.peer}.`, c: `wg gives the shared addresses to the last peer loaded, so peer ${r1.peer} silently stops receiving that traffic: the classic "handshake OK, no traffic" bug.`, f: wide.net.prefix < 32 ? `Narrow peer ${wide.peer} to its single address with /32, so the two ranges are distinct.` : "Give each client its own /32, so the two ranges are distinct." }, wide.line);
       }
     }
   }
@@ -271,15 +296,12 @@ export function checkConfig(text: string): CheckResult {
  *  it, so it is recognised and described instead of being reported as a broken config. */
 function checkWgEasyJson(text: string): CheckResult {
   let j: { server?: { privateKey?: unknown; address?: unknown }; clients?: Record<string, { enabled?: unknown }> };
-  try { j = JSON.parse(text); } catch {
-    return { kind: "unknown", peers: 0, findings: [{ level: "error", where: "File", msg: "This starts like JSON but is not valid JSON. A WireGuard config is an INI-style text file starting with [Interface]." }] };
-  }
-  if (!j?.server || typeof j.server.privateKey !== "string" || typeof j.clients !== "object") {
-    return { kind: "unknown", peers: 0, findings: [{ level: "error", where: "File", msg: "This is JSON, not a WireGuard config. A config is an INI-style text file starting with [Interface]." }] };
-  }
+  const notConf = (p: string) => ({ kind: "unknown" as const, peers: 0, findings: [mk("error", "File", { p, c: "wg-quick only reads an INI-style text file starting with [Interface].", f: "Paste the wg0.conf (server) or the client .conf instead." })] });
+  try { j = JSON.parse(text); } catch { return notConf("This starts like JSON but is not valid JSON."); }
+  if (!j?.server || typeof j.server.privateKey !== "string" || typeof j.clients !== "object") return notConf("This is JSON, not a WireGuard config.");
   const all = Object.values(j.clients ?? {});
   const on = all.filter((c) => c?.enabled !== false).length;
-  const F: Finding[] = [{ level: "info", where: "File", msg: `This is wg-easy's wg0.json (v14 and earlier, or its Backup download), not a file wg-quick reads. It holds the server key, ${all.length} client${all.length === 1 ? "" : "s"} (${on} enabled) with their own private keys, and their addresses.` }];
-  if (!/^[A-Za-z0-9+/]{43}=$/.test(j.server.privateKey)) F.push({ level: "error", where: "server", msg: "server.privateKey is not a valid WireGuard key." });
+  const F: Finding[] = [mk("info", "File", { p: "This is wg-easy's wg0.json (v14 and earlier, or its Backup download).", c: `wg-quick does not read it. It holds the server key, ${all.length} client${all.length === 1 ? "" : "s"} (${on} enabled) with their own private keys, and their addresses.`, f: "Import it below to get a wg0.conf and one .conf per device." })];
+  if (!/^[A-Za-z0-9+/]{43}=$/.test(j.server.privateKey)) F.push(mk("error", "server", { p: "server.privateKey is not a valid WireGuard key.", c: "The server key cannot be recovered from this file.", f: "Take a fresh Backup from the wg-easy panel." }));
   return { kind: "wg-easy", peers: on, findings: F };
 }

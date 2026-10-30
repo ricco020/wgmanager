@@ -169,3 +169,28 @@ ul.findings li.f-pass b { color: var(--green); }
 .info2 details:last-child { padding-bottom: 0; }
 .info2 summary { color: var(--text); font-family: var(--display); font-weight: 700; cursor: pointer; }
 .info2 details p { margin: 8px 0 0; font-size: 14px; }
+/* Checker report: summary, then Problem / Consequence / Fix per finding, copiable fix and a jump to the line. */
+.fx-summary { border: 1px solid var(--line); border-left-width: 4px; border-radius: 8px; padding: 12px 14px; margin: 0 0 14px; background: var(--panel-2); }
+.fx-summary strong { font-family: var(--display); font-size: 20px; }
+.fx-summary.bad { border-left-color: var(--red); } .fx-summary.bad strong { color: var(--red); }
+.fx-summary.mid { border-left-color: var(--amber); } .fx-summary.mid strong { color: var(--amber); }
+.fx-summary.good { border-left-color: var(--green); } .fx-summary.good strong { color: var(--green); }
+.fx-sub { display: block; margin-top: 4px; font-size: 14px; color: #c9d4df; }
+ol.findings.fx { list-style: none; padding: 0; margin: 0 0 8px; display: grid; gap: 12px; }
+ol.findings.fx > li { border-left: 3px solid var(--line); padding: 10px 12px; background: var(--panel-2); border-radius: 0 6px 6px 0; }
+ol.findings.fx > li.f-error { border-left-color: var(--red); } ol.findings.fx > li.f-error .fx-head b { color: var(--red); }
+ol.findings.fx > li.f-warn { border-left-color: var(--amber); } ol.findings.fx > li.f-warn .fx-head b { color: var(--amber); }
+ol.findings.fx > li.f-info .fx-head b { color: var(--muted); }
+.fx-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; margin-bottom: 6px; }
+.fx-goto, .fx-copy { margin-left: auto; font: 600 13px var(--sans); color: var(--amber); background: transparent; border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; min-height: 32px; cursor: pointer; }
+.fx-goto:hover, .fx-copy:hover { border-color: var(--amber); }
+dl.fx-body { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 0; font-size: 14px; }
+dl.fx-body dt { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; padding-top: 2px; }
+dl.fx-body dd { margin: 0; }
+@media (max-width: 520px) { dl.fx-body { grid-template-columns: 1fr; } dl.fx-body dd { margin-bottom: 6px; } }
+.fx-code { display: flex; align-items: flex-start; gap: 8px; margin-top: 8px; background: #0a0d12; border: 1px solid var(--line); border-radius: 6px; padding: 8px 8px 8px 12px; }
+.fx-code pre { margin: 0; flex: 1; overflow-x: auto; font: 13px/1.5 var(--mono); color: var(--text); white-space: pre; }
+.fx-code .fx-copy { margin-left: 0; flex: none; }
+textarea::selection { background: var(--amber); color: #0a0d12; }
+ol.findings.fx > li, dl.fx-body dd, .fx-code pre { min-width: 0; }
+dl.fx-body dd { overflow-wrap: anywhere; }
