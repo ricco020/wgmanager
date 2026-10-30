@@ -33,7 +33,16 @@ export default async function CheckPage({ searchParams }: { searchParams: Promis
       <JsonLd data={toolLd("/check", "WireGuard config checker", metadata.description as string, CHECKS.map(([k]) => k).concat(["Add a peer: next free IP, keys, client .conf and QR code"]))} />
       <section style={{ padding: "28px 0 16px" }}>
         <div className="fade" style={{ color: "var(--amber)", textTransform: "uppercase", letterSpacing: "0.14em", fontSize: 12, marginBottom: 10 }}>Free tool, no account</div>
-        <h1 className="fade d1 h1tool">WireGuard config checker</h1>
+        <div className="fade d1 tool-head">
+          <svg width="56" height="56" viewBox="0 0 56 56" fill="none" aria-hidden="true">
+            <rect x="1" y="1" width="54" height="54" rx="12" fill="#141c24" stroke="#33414f" />
+            <circle cx="13" cy="28" r="5" stroke="#ffb224" strokeWidth="2.5" />
+            <circle cx="43" cy="28" r="5" stroke="#ffb224" strokeWidth="2.5" />
+            <path d="M18 22h20M18 34h20" stroke="#aebbcb" strokeWidth="2" strokeLinecap="round" />
+            <path d="M21 28h14" stroke="#3fb950" strokeWidth="2.5" strokeLinecap="round" strokeDasharray="3 4" />
+          </svg>
+          <h1 className="h1tool" style={{ margin: 0 }}>WireGuard config checker</h1>
+        </div>
         <p className="fade d2 muted" style={{ maxWidth: "58ch", fontSize: "1.05rem", margin: 0 }}>
           Paste a <code>wg0.conf</code> or a client file: every line wg-quick will refuse or misroute, with the fix.
         </p>
@@ -43,51 +52,51 @@ export default async function CheckPage({ searchParams }: { searchParams: Promis
         <Checker signedIn={!!user} />
       </section>
 
-      <section className="panel" style={{ marginBottom: 24 }}>
-        <h2>Symptoms it explains</h2>
-        <p className="muted" style={{ margin: 0 }}>
-          Handshake never completes, connected but no traffic, works on Wi-Fi but not on mobile data, sites that load halfway.
-          On a server file, the same page adds a peer: next free IP, fresh keys, the block for the server, the client file and its QR code.
-        </p>
-      </section>
-
-      <section className="panel" style={{ marginBottom: 24 }}>
-        <h2>What it checks</h2>
-        <p className="muted" style={{ fontSize: 14 }}>Eight groups of rules, read from the wg-quick and wg(8) behaviour. Open one for the detail.</p>
-        <div className="checklist">
+      <div className="info2">
+        <section className="panel">
+          <h2>What it checks</h2>
+          <p className="muted" style={{ fontSize: 14 }}>
+            Symptoms it explains: handshake never completes, connected but no traffic, works on Wi-Fi but not on mobile data, sites that load halfway.
+            On a server file it also adds a peer: next free IP, fresh keys, the server block, the client file and its QR code.
+            Eight groups of rules, read from the wg-quick and wg(8) behaviour:
+          </p>
           {CHECKS.map(([t, d]) => (
             <details key={t}><summary>{t}</summary><p className="muted">{d}</p></details>
           ))}
-        </div>
-      </section>
+        </section>
 
-      <section className="panel" style={{ marginBottom: 24 }}>
-        <h2>Full tunnel, but the printer and the NAS must stay local?</h2>
-        <p className="muted">
-          WireGuard has no exclude option: AllowedIPs has to list every block you want routed. The{" "}
-          <a href="/allowedips?ref=check">AllowedIPs calculator</a> subtracts your LAN (or any address) from 0.0.0.0/0 and ::/0
-          and gives you the line to paste.
-        </p>
-      </section>
-
-      <section className="panel" style={{ marginBottom: 24 }}>
-        <h2>What it cannot see</h2>
-        <p className="muted">
-          A file can be perfect and the tunnel still down. The checker reads text; it does not know whether UDP port{" "}
-          <code>51820</code> is open in your firewall or cloud security group, whether <code>net.ipv4.ip_forward</code> is on,
-          or whether the client&apos;s PublicKey really matches the private key on the device. If the file passes, check those next,
-          and run <code>wg show</code> on the server: a &quot;latest handshake&quot; line tells you the keys and the port are right.
-        </p>
-      </section>
-
-      <section id="privacy" className="panel" style={{ marginBottom: 24 }}>
-        <h2>Privacy</h2>
-        <p className="muted">
-          The check runs entirely in this page&apos;s JavaScript. The config, private keys included, is not sent anywhere; we only
-          count that a check was run. If you choose to import the file into WireGuard Manager afterwards, it is sent then, over
-          HTTPS, and the keys are stored encrypted (AES-256-GCM).
-        </p>
-      </section>
+        <section className="panel">
+          <h2>Limits, local routes and privacy</h2>
+          <p className="muted" style={{ fontSize: 14 }}>
+            The checker reads text, never your network. Your config stays in this page.
+          </p>
+          <details>
+            <summary>Full tunnel, but the printer and the NAS must stay local?</summary>
+            <p className="muted">
+              WireGuard has no exclude option: AllowedIPs has to list every block you want routed. The{" "}
+              <a href="/allowedips?ref=check">AllowedIPs calculator</a> subtracts your LAN (or any address) from 0.0.0.0/0 and ::/0
+              and gives you the line to paste.
+            </p>
+          </details>
+          <details>
+            <summary>What it cannot see</summary>
+            <p className="muted">
+              A file can be perfect and the tunnel still down. The checker does not know whether UDP port{" "}
+              <code>51820</code> is open in your firewall or cloud security group, whether <code>net.ipv4.ip_forward</code> is on,
+              or whether the client&apos;s PublicKey really matches the private key on the device. If the file passes, check those next,
+              and run <code>wg show</code> on the server: a &quot;latest handshake&quot; line tells you the keys and the port are right.
+            </p>
+          </details>
+          <details id="privacy" open>
+            <summary>Privacy</summary>
+            <p className="muted">
+              The check runs entirely in this page&apos;s JavaScript. The config, private keys included, is not sent anywhere; we only
+              count that a check was run. If you choose to import the file into WireGuard Manager afterwards, it is sent then, over
+              HTTPS, and the keys are stored encrypted (AES-256-GCM).
+            </p>
+          </details>
+        </section>
+      </div>
     </>
   );
 }

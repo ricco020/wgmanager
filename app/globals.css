@@ -147,3 +147,20 @@ ul.findings li.f-pass b { color: var(--green); }
 .h1tool { font-weight: 600; }
 .workspace .privacy { font-size: 14px; padding: 8px 14px; }
 @media (max-width: 480px) { .ws-actions .ws-sample { min-height: 44px; } .ws-hint { display: none; } }
+/* /check two-column workspace (direction 30/10): editor left, diagnostic right; one column under 900px. */
+.ck-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); gap: 24px; align-items: start; }
+.ck-edit, .ck-diag { min-width: 0; }
+.ck-diag-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 2px 10px; border-bottom: 1px solid var(--line); margin-bottom: 12px; }
+.ck-diag .panel { padding: 18px; }
+.ck-diag ul.findings { margin: 0; }
+@media (max-width: 900px) { .ck-grid { grid-template-columns: 1fr; gap: 8px; } }
+.tool-head { display: flex; align-items: center; gap: 16px; }
+.tool-head svg { flex: none; }
+@media (max-width: 480px) { .tool-head svg { width: 44px; height: 44px; } }
+.info2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px; }
+@media (max-width: 900px) { .info2 { grid-template-columns: 1fr; } }
+.info2 .panel > p:first-of-type { margin-bottom: 8px; }
+.info2 details { border-top: 1px solid var(--line); padding: 10px 0; }
+.info2 details:last-child { padding-bottom: 0; }
+.info2 summary { color: var(--text); font-family: var(--display); font-weight: 700; cursor: pointer; }
+.info2 details p { margin: 8px 0 0; font-size: 14px; }

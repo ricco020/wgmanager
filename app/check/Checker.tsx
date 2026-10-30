@@ -70,7 +70,8 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
   const counts = res ? { error: 0, warn: 0, info: 0, ...Object.fromEntries((["error", "warn", "info"] as const).map((l) => [l, res.findings.filter((f) => f.level === l).length])) } : null;
 
   return (
-    <div className="checker">
+    <div className="checker ck-grid">
+      <div className="ck-edit">
       {fromGen && <div className="ok" style={{ marginBottom: 12 }}>The wg0.conf you just generated on VPNSmith is loaded below. It was read from the link in your browser and has not been uploaded.</div>}
       <div className="workspace">
         <div className="ws-head">
@@ -89,6 +90,10 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
         <button className="btn ghost ws-sample" type="button" onClick={() => { if (ta.current) ta.current.value = SAMPLE; run(); }}>Load a broken example</button>
         <span className="muted" style={{ fontSize: 14 }}>Server or client file, with or without comments. Only the fact that a check ran is counted (<a href="#privacy">details</a>).</span>
       </p>
+      </div>
+
+      <div className="ck-diag">
+      <div className="ck-diag-head"><span className="ws-title">Diagnostic</span><span className="muted ws-hint">{res ? (res.findings.length ? `${res.findings.length} finding${res.findings.length === 1 ? "" : "s"}` : "no finding") : "waiting for a file"}</span></div>
 
       {!res && (
         <div className="preview" aria-hidden="true">
@@ -208,6 +213,7 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
           )}
         </div>
       )}
+      </div>
     </div>
   );
 }
