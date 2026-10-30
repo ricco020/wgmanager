@@ -25,6 +25,7 @@ AllowedIPs = 10.8.0.3/32
 
 export function Checker({ signedIn }: { signedIn: boolean }) {
   const ta = useRef<HTMLTextAreaElement>(null);
+  const diag = useRef<HTMLDivElement>(null);
   const [res, setRes] = useState<CheckResult | null>(null);
   const [text, setText] = useState("");
   const [endpoint, setEndpoint] = useState("");
@@ -36,6 +37,10 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
     const r = checkConfig(t);
     setRes(r);
     setText(t);
+    // One column under 900px: the report sits below the editor, so bring it into view.
+    if (window.matchMedia("(max-width: 900px)").matches) {
+      requestAnimationFrame(() => diag.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    }
     // Usage counter only: the file content is not part of the request.
     fetch(`/api/check-run?kind=${r.kind}&peers=${r.peers}${source ? `&from=${source}` : ""}`, { method: "POST", keepalive: true }).catch(() => {});
   }
@@ -92,7 +97,7 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
       </p>
       </div>
 
-      <div className="ck-diag">
+      <div className="ck-diag" ref={diag} style={{ scrollMarginTop: 12 }}>
       <div className="ck-diag-head"><span className="ws-title">Diagnostic</span><span className="muted ws-hint">{res ? (res.findings.length ? `${res.findings.length} finding${res.findings.length === 1 ? "" : "s"}` : "no finding") : "waiting for a file"}</span></div>
 
       {!res && (
