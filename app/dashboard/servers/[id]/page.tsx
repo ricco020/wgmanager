@@ -4,7 +4,7 @@ import QRCode from "qrcode";
 import { currentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { FREE_LIMITS } from "@/lib/site";
-import { isPro } from "@/lib/stripe";
+import { proAccess } from "@/lib/stripe";
 import { peerConfig, peerHasConfig, serverAddress } from "@/lib/wg";
 import { deletePeer, rotatePeer } from "../../../actions";
 import { PeerForm } from "./PeerForm";
@@ -19,7 +19,7 @@ export default async function ServerPage({ params, searchParams }: { params: Pro
   const { imported } = await searchParams;
   const server = await db.server.findFirst({ where: { id, userId: user.id }, include: { peers: { orderBy: { createdAt: "asc" } } } });
   if (!server) notFound();
-  const pro = await isPro(user);
+  const pro = await proAccess(user);
   const canAdd = pro || server.peers.length < FREE_LIMITS.peers;
   const qrs = await Promise.all(server.peers.map((p) => peerHasConfig(p) ? QRCode.toDataURL(peerConfig(server, p), { margin: 1, width: 220, errorCorrectionLevel: "M" }) : Promise.resolve("")));
   const exportable = server.peers.filter(peerHasConfig).length;

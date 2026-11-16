@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { FREE_LIMITS } from "@/lib/site";
-import { isPro } from "@/lib/stripe";
+import { isPro, inTrial, trialEnd } from "@/lib/stripe";
 import { ServerForm } from "./ServerForm";
 import { ImportForm } from "./ImportForm";
 import { deleteServer } from "../actions";
@@ -16,15 +16,17 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   const user = await currentUser();
   if (!user) redirect("/login");
   const pro = await isPro(user);
+  const trial = !pro && inTrial(user);
+  const trialUntil = trialEnd(user).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
   const { welcome } = await searchParams;
   const servers = await db.server.findMany({ where: { userId: user.id }, orderBy: { createdAt: "asc" }, include: { _count: { select: { peers: true } } } });
   await recordHit(servers.length ? "/dashboard" : "/dashboard:empty");
-  const canAdd = pro || servers.length < FREE_LIMITS.servers;
+  const canAdd = pro || trial || servers.length < FREE_LIMITS.servers;
   return (
     <>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 40 }}>
         <h1>Servers</h1>
-        <span className={pro ? "tag pro" : "tag"}>{pro ? "Pro" : `Free: ${FREE_LIMITS.servers} server, ${FREE_LIMITS.peers} peers`}</span>
+        <span className={pro ? "tag pro" : "tag"}>{pro ? "Pro" : trial ? `Pro trial until ${trialUntil}` : `Free: ${FREE_LIMITS.servers} server, ${FREE_LIMITS.peers} peers`}</span>
       </div>
       {welcome === "pro" && <p className="ok">Pro is active. Limits are lifted on this account.</p>}
       {servers.length === 0 && (
@@ -76,9 +78,10 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
       </div>
       <div className="panel" id="import" style={{ marginTop: 18 }}>
         <h2>Already running WireGuard? Import your wg0.conf or wg-easy wg0.json</h2>
-        {canAdd ? <ImportForm pro={pro} /> : <p className="muted">The free plan includes {FREE_LIMITS.servers} server. <a href="/pricing">Upgrade to Pro</a> to import more.</p>}
+        {canAdd ? <ImportForm pro={pro || trial} /> : <p className="muted">The free plan includes {FREE_LIMITS.servers} server. <a href="/pricing">Upgrade to Pro</a> to import more.</p>}
       </div>
-      {!pro && <p className="muted" style={{ marginTop: 20 }}>Need more? <a href="/pricing">Pro: unlimited servers and peers for 9 EUR/month</a>.</p>}
+      {trial && <p className="muted" style={{ marginTop: 20 }}>Pro trial until {trialUntil}: unlimited servers and peers, no card asked. After that date everything you added stays here with its files; adding more than {FREE_LIMITS.servers} server or {FREE_LIMITS.peers} peers needs <a href="/pricing">Pro, 9 EUR/month</a>.</p>}
+      {!pro && !trial && <p className="muted" style={{ marginTop: 20 }}>Need more? <a href="/pricing">Pro: unlimited servers and peers for 9 EUR/month</a>.</p>}
       {user.stripeCustomerId && (
         <form action="/api/stripe/portal" method="post" style={{ marginTop: 20 }}>
           <button className="btn ghost sm" type="submit">Manage subscription (invoices, card, cancel)</button>

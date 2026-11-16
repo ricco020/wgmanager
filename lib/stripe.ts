@@ -1,6 +1,6 @@
 import type { User } from "@prisma/client";
 import { db } from "./db";
-import { SITE } from "./site";
+import { SITE, TRIAL_DAYS } from "./site";
 
 const API = "https://api.stripe.com/v1";
 export const PROJECT = "wgmanager";
@@ -97,6 +97,20 @@ export async function refreshPro(user: User): Promise<User> {
   const end = await activePeriodEnd(user.stripeCustomerId);
   const proUntil = end ? new Date((end + GRACE_S) * 1000) : null;
   return db.user.update({ where: { id: user.id }, data: { proUntil } });
+}
+
+/** End of the no-card Pro trial: TRIAL_DAYS after the account was created. */
+export function trialEnd(user: User): Date {
+  return new Date(user.createdAt.getTime() + TRIAL_DAYS * 86400000);
+}
+
+export function inTrial(user: User): boolean {
+  return trialEnd(user).getTime() > Date.now();
+}
+
+/** Limits lifted: paying Pro, or inside the trial. Use isPro alone for anything that says "you are a subscriber". */
+export async function proAccess(user: User): Promise<boolean> {
+  return inTrial(user) || (await isPro(user));
 }
 
 /** Pro if proUntil is in the future. When it has lapsed but a customer exists, re-ask Stripe once. */

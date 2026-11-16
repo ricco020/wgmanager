@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { currentUser } from "@/lib/auth";
-import { FREE_LIMITS, PRO_PRICE_EUR, SITE } from "@/lib/site";
+import { FREE_LIMITS, PRO_PRICE_EUR, SITE, TRIAL_DAYS } from "@/lib/site";
 import { isPro, stripeReady } from "@/lib/stripe";
 import { recordHit } from "@/lib/stats";
 
@@ -16,7 +16,7 @@ export default async function Pricing({ searchParams }: { searchParams: Promise<
   return (
     <>
       <h1 style={{ marginTop: 50 }}>Simple pricing</h1>
-      <p className="muted">Start free. Upgrade when you manage more than one server or a handful of devices. Cancel any time from your dashboard.</p>
+      <p className="muted">Every new account has Pro limits lifted for {TRIAL_DAYS} days, no card asked: import a server of any size. After that, what you added stays with its files, and adding more than the free limits needs Pro. Cancel any time from your dashboard.</p>
       {error && <p className="err">The payment could not be confirmed. Nothing was charged if you did not complete the Stripe page.</p>}
       <div className="pricing">
         <div className="panel">

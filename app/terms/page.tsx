@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { EMAIL, FREE_LIMITS, LEGAL_PUBLISHER, PRODUCT, PRO_PRICE_EUR } from "@/lib/site";
+import { EMAIL, FREE_LIMITS, LEGAL_PUBLISHER, PRODUCT, PRO_PRICE_EUR, TRIAL_DAYS } from "@/lib/site";
 
 export const metadata: Metadata = { title: "Terms of sale and use" };
 
@@ -11,7 +11,7 @@ export default function Terms() {
       <h2>1. Service</h2>
       <p>{PRODUCT} is a web application that generates and stores WireGuard configuration files (server and peers). It does not carry network traffic and is not a VPN service. The service is provided by {LEGAL_PUBLISHER.name}, {LEGAL_PUBLISHER.status} (see the legal notice).</p>
       <h2>2. Plans and prices</h2>
-      <p>Free plan: {FREE_LIMITS.servers} server and {FREE_LIMITS.peers} peers, no payment. Pro plan: unlimited servers and peers for {PRO_PRICE_EUR} EUR per month, VAT not applicable (article 293 B CGI). Prices are shown in euros before payment; the price displayed at checkout is the price charged.</p>
+      <p>Free plan: {FREE_LIMITS.servers} server and {FREE_LIMITS.peers} peers, no payment. Pro plan: unlimited servers and peers for {PRO_PRICE_EUR} EUR per month, VAT not applicable (article 293 B CGI). Prices are shown in euros before payment; the price displayed at checkout is the price charged. Trial: for {TRIAL_DAYS} days after an account is created, the Pro limits are lifted without payment and without a card; nothing is charged at the end. Servers and peers added during the trial remain available with their files; adding servers or peers beyond the free limits then requires the Pro plan.</p>
       <h3 id="generator-pro">WireGuard Pro for the VPNSmith config generator (one-time purchase)</h3>
       <p>WireGuard Pro is a one-time payment of 9 EUR, VAT not applicable (article 293 B CGI), with no subscription and no renewal. It unlocks, in the browser where it was bought, generation of up to 250 clients at once and a single ZIP containing every client .conf file, the server configuration and each client QR code. Keys are generated in your browser and are never sent to us. Keep the link of the confirmation page: it restores access in another browser. Access starts immediately at your express request; under article L221-28 13° of the French Consumer Code the right of withdrawal then ends. If the export does not work for you, email {EMAIL} within 14 days and we will refund you.</p>
       <h2>3. Subscription, renewal, cancellation</h2>

@@ -3,6 +3,9 @@ export const PRODUCT = "WireGuard Manager";
 export const BRAND = "by VPNSmith";
 export const PRO_PRICE_EUR = 9;
 export const FREE_LIMITS = { servers: 1, peers: 3 };
+/** Every new account has Pro limits lifted for this many days, no card. After that the free limits apply to what is
+ *  added (servers and peers already there stay, with their downloads). */
+export const TRIAL_DAYS = 14;
 export const EMAIL = "ads.ericgerard@gmail.com";
 export const LEGAL_PUBLISHER = {
   name: "Eric LEROY",

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { FREE_LIMITS, PRO_PRICE_EUR, SITE } from "@/lib/site";
+import { FREE_LIMITS, PRO_PRICE_EUR, SITE, TRIAL_DAYS } from "@/lib/site";
 import { recordHit } from "@/lib/stats";
 import { JsonLd, productLd } from "@/lib/jsonld";
 
@@ -27,7 +27,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
             {" "}
             <a className="btn ghost" href="/pricing">Compare plans</a>
           </p>
-          <p className="muted fade d3">No card for the free plan. Pro: unlimited servers and peers, {PRO_PRICE_EUR} EUR/month, cancel anytime. Only need the config files once? <a href="https://www.vpnsmith.com/en/tools/wireguard-config-generator?ref=wgm-home">the generator is free</a>.</p>
+          <p className="muted fade d3">No card. Every new account has Pro limits lifted for {TRIAL_DAYS} days, so a server of any size can be imported. Pro: unlimited servers and peers, {PRO_PRICE_EUR} EUR/month, cancel anytime. Only need the config files once? <a href="https://www.vpnsmith.com/en/tools/wireguard-config-generator?ref=wgm-home">the generator is free</a>.</p>
         </div>
         <figure className="fade d2" style={{ margin: 0 }}>
           <img

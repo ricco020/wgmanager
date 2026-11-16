@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { SITE } from "@/lib/site";
-import { GEN_PROJECT, GEN_PRICE_CENTS, genUrl } from "@/lib/genpro";
+import { GEN_PROJECT, GEN_PRICE_CENTS, GEN_ON_SALE, genUrl } from "@/lib/genpro";
 import { recordHit } from "@/lib/stats";
 
 export const dynamic = "force-dynamic";
@@ -68,6 +68,10 @@ async function start(locale: string, srcIn: string) {
   const back = genUrl(locale);
   const lang = locale in COPY ? locale : "en";
   const c = COPY[lang];
+  // The Pro card left the generator on 29/10/2026 (250 clients and the ZIP are free there). Only crawlers replaying old
+  // links still reach this endpoint, and each visit opened a live Checkout session (33 unpaid sessions from 02/11 to
+  // 16/11/2026, read as demand by mistake). Send everyone back to the free generator; flip GEN_ON_SALE to sell again.
+  if (!GEN_ON_SALE) return NextResponse.redirect(`${back}#pro`, 303);
   const sk = process.env.STRIPE_SECRET_KEY;
   if (!sk) return NextResponse.redirect(`${back}?wgpro=unavailable#pro`, 303);
   await recordHit(`/gen-pro:checkout-${src}`, null).catch(() => {});

@@ -9,7 +9,7 @@ import { encrypt, wgKeypair, wgPresharedKey, wgPublicKeyOf } from "@/lib/crypto"
 import { db } from "@/lib/db";
 import { FREE_LIMITS } from "@/lib/site";
 import { cleanRef, peerBucket, recordHit } from "@/lib/stats";
-import { isPro } from "@/lib/stripe";
+import { proAccess, inTrial } from "@/lib/stripe";
 import { nextFreeIp, parseCidr, parseServerConf, validDns, validEndpoint } from "@/lib/wg";
 
 /** React 19 resets a form after its action completes, so an error carries the typed values back for defaultValue. */
@@ -75,7 +75,7 @@ export async function createServer(_prev: ActionState, form: FormData): Promise<
   if (mtu !== null && (!Number.isInteger(mtu) || mtu < 1280 || mtu > 1500)) return fail(form, "MTU must be between 1280 and 1500, or empty.", SERVER_FIELDS);
 
   const count = await db.server.count({ where: { userId: user.id } });
-  if (count >= FREE_LIMITS.servers && !(await isPro(user))) {
+  if (count >= FREE_LIMITS.servers && !(await proAccess(user))) {
     return fail(form, `The free plan includes ${FREE_LIMITS.servers} server. Upgrade to Pro for unlimited servers.`, SERVER_FIELDS);
   }
   const kp = wgKeypair();
@@ -118,7 +118,7 @@ export async function importServer(_prev: ActionState, form: FormData): Promise<
     if (!Number.isInteger(p) || p < 1 || p > 65535) return fail(form, "Listen port must be between 1 and 65535.", IMPORT_FIELDS);
     conf.port = p;
   }
-  const pro = await isPro(user);
+  const pro = await proAccess(user);
   const count = await db.server.count({ where: { userId: user.id } });
   if (count >= FREE_LIMITS.servers && !pro) {
     return fail(form, `The free plan includes ${FREE_LIMITS.servers} server. Upgrade to Pro to import more.`, IMPORT_FIELDS);
@@ -131,6 +131,9 @@ export async function importServer(_prev: ActionState, form: FormData): Promise<
       return { ...fail(form, `This file has ${peers.length} peers; the free plan includes ${FREE_LIMITS.peers}. Upgrade to Pro (9 EUR/month) to import all of them, or tick "import only the first ${FREE_LIMITS.peers} peers".`, IMPORT_FIELDS), paywall: peers.length };
     }
     peers = peers.slice(0, FREE_LIMITS.peers);
+  } else if (peers.length > FREE_LIMITS.peers && !user.proUntil && inTrial(user)) {
+    // A server larger than the free plan imported inside the no-card trial: the population the trial is for.
+    await recordHit(`/dashboard:trial-import-${peerBucket(peers.length)}`);
   }
   let publicKey: string;
   try { publicKey = wgPublicKeyOf(conf.privateKey); } catch { return fail(form, "[Interface] PrivateKey could not be read as an X25519 key.", IMPORT_FIELDS); }
@@ -164,7 +167,7 @@ export async function addPeer(_prev: ActionState, form: FormData): Promise<Actio
   if (!Number.isInteger(keepalive) || keepalive < 0 || keepalive > 600) return fail(form, "Keepalive must be between 0 and 600 seconds.", PEER_FIELDS);
   const server = await db.server.findFirst({ where: { id: serverId, userId: user.id }, include: { peers: true } });
   if (!server) return fail(form, "Server not found.", PEER_FIELDS);
-  if (server.peers.length >= FREE_LIMITS.peers && !(await isPro(user))) {
+  if (server.peers.length >= FREE_LIMITS.peers && !(await proAccess(user))) {
     return fail(form, `The free plan includes ${FREE_LIMITS.peers} peers per account. Upgrade to Pro for unlimited peers.`, PEER_FIELDS);
   }
   const ip = nextFreeIp(server.subnet, server.peers.map((p) => p.ip));

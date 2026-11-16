@@ -3,6 +3,8 @@
  *  leave the visitor's browser; the paid Checkout session id is the licence the generator checks. */
 export const GEN_PROJECT = "wgmanager-gen";
 export const GEN_PRICE_CENTS = 900;
+/** Off since the generator became fully free (vpnsmith d112857, 29/10/2026). */
+export const GEN_ON_SALE: boolean = false;
 export const GEN_ORIGIN = "https://www.vpnsmith.com";
 export const GEN_LOCALES = ["en", "fr", "es", "de", "it", "pt"] as const;
 export const SESSION_RE = /^cs_(live|test)_[A-Za-z0-9]{10,200}$/;

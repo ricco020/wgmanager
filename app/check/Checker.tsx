@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { checkConfig, EP_KEY, HANDOFF_KEY, type CheckResult } from "@/lib/check";
-import { FREE_LIMITS, PRO_PRICE_EUR } from "@/lib/site";
+import { FREE_LIMITS, PRO_PRICE_EUR, TRIAL_DAYS } from "@/lib/site";
 import { HostBlock } from "./HostBlock";
 import { AddPeer } from "./AddPeer";
 
@@ -227,7 +227,7 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
                 holds each client&apos;s private key, every device&apos;s .conf and QR code are ready at once. Useful to stay on v14 (armv6 and armv7 hosts cannot run v15)
                 or to retire the panel and run plain wg-quick. Nothing changes on the server.
                 {res.peers > FREE_LIMITS.peers
-                  ? ` The free plan holds ${FREE_LIMITS.peers} peers; Pro (${PRO_PRICE_EUR} EUR/month) holds all ${res.peers}.`
+                  ? ` A new account imports all ${res.peers} free for ${TRIAL_DAYS} days, no card. They stay afterwards; adding more then needs Pro (${PRO_PRICE_EUR} EUR/month).`
                   : ` Free for ${FREE_LIMITS.servers} server and ${FREE_LIMITS.peers} peers.`}
               </p>
               <button className="btn" type="button" onClick={() => sendToImport()}>Import this wg0.json</button>
@@ -240,7 +240,7 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
                 Import it into WireGuard Manager: the {res.peers} peer{res.peers === 1 ? "" : "s"} and keys stay exactly as they are, nothing changes on the devices.
                 New peers get the next free IP (no more overlaps), and each one gets its .conf and QR code.
                 {res.peers > FREE_LIMITS.peers
-                  ? ` The free plan holds ${FREE_LIMITS.peers} peers; Pro (${PRO_PRICE_EUR} EUR/month) holds all ${res.peers}.`
+                  ? ` A new account imports all ${res.peers} free for ${TRIAL_DAYS} days, no card. They stay afterwards; adding more then needs Pro (${PRO_PRICE_EUR} EUR/month).`
                   : ` Free for ${FREE_LIMITS.servers} server and ${FREE_LIMITS.peers} peers.`}
               </p>
               <button className="btn" type="button" onClick={() => sendToImport()}>Import this wg0.conf</button>
