@@ -8,8 +8,9 @@ export function HostBlock({ from, title, lead }: { from: string; title: string; 
       <p className="muted">{lead}</p>
       <p className="muted" style={{ fontSize: 14 }}>
         Smallest server that runs it: HostPapa Unmanaged VPS Lite, 1 core, 1 GB RAM, 25 GB NVMe, root SSH, a public IPv4,
-        30-day money-back. On 28 October 2026 it cost 2.95 USD/month on the 3-year term, then the regular price; the order page
-        shows the current price.
+        30-day money-back. On 17 November 2026 it cost 2.95 USD/month on the 3-year term, then the regular price. Their Black Friday
+        sale was running that day: the next plan up, Start (2 cores, 2 GB RAM, 50 GB NVMe), was 4.45 USD/month on the same term.
+        The order page shows the current price.
       </p>
       <p style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center", margin: "10px 0 6px" }}>
         <a className="btn" href={`/out/vps?from=${from}&p=hp`} rel="sponsored nofollow">See HostPapa VPS Lite</a>
