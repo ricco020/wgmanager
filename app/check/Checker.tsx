@@ -211,9 +211,10 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
                 <p className="muted" style={{ fontSize: 14, margin: "8px 0 0" }}>
                   Option for a network that blocks WireGuard, for your own device: a VPN app with an obfuscated protocol gets through.{" "}
                   <a href="/out/vpn?from=check-blocked" rel="sponsored nofollow">Proton VPN</a> has Stealth, on every plan including Free.
-                  The paid plan adds 10 devices and every server country: on its partner page, read on 28 October 2026, Proton VPN Plus
-                  costs <a href="/out/vpn?from=check-plus" rel="sponsored nofollow">$2.99/month on the 2-year plan</a> ($71.76 for the
-                  first 24 months, then $83.88 a year), with a 30-day money-back guarantee; the order page shows the price for your country.
+                  The paid plan adds 10 devices and every server country: on its partner page, read on 17 November 2026, the Black Friday
+                  offer puts Proton VPN Plus at <a href="/out/vpn?from=check-plus" rel="sponsored nofollow">$2.49/month on the 2-year plan</a> ($59.76
+                  for the first 24 months, 75% off the regular monthly price, then it renews every 12 months at the standard price), with a
+                  30-day money-back guarantee. The offer is for new accounts; the order page shows the price for your country.
                   VPNSmith may earn a commission; the price is the same for you.
                 </p>
               </div>
@@ -249,9 +250,16 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
           {res.kind === "server" && <AddPeer key={text} text={text} peers={res.peers} signedIn={signedIn} onImport={sendToImport} defaultEndpoint={endpoint.replace(/:\d+$/, "")} />}
           {res.kind === "client" && (
             <div className="handoff">
-              <h3>Issue client files that are right the first time</h3>
-              <p className="muted">WireGuard Manager writes every client .conf from the server&apos;s settings: matching keys, a free IP, IPv6 and DNS covered in full tunnel, keepalive set. Free for {FREE_LIMITS.peers} peers.</p>
-              <a className="btn" href={signedIn ? "/dashboard" : "/signup"}>Manage peers for free</a>
+              <h3>You run the server behind this file?</h3>
+              <p className="muted">
+                WireGuard Manager writes every client .conf from the server&apos;s settings: matching keys, a free IP, IPv6 and DNS covered in full tunnel,
+                keepalive set, one QR code per device. Paste the server&apos;s wg0.conf above to import it with its peers, or start from an empty server.
+                A new account has Pro limits lifted for {TRIAL_DAYS} days, no card; after that it stays free for {FREE_LIMITS.peers} peers.
+              </p>
+              <button className="btn" type="button" onClick={() => {
+                fetch("/api/check-run?kind=client-cta", { method: "POST", keepalive: true }).catch(() => {});
+                window.location.href = signedIn ? "/dashboard" : "/signup";
+              }}>Manage this server&apos;s peers</button>
             </div>
           )}
         </div>

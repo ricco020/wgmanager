@@ -68,11 +68,12 @@ export default async function AllowedIpsPage({ searchParams }: { searchParams: P
           <strong>Partner offer: Proton VPN Plus</strong> <span className="tag">Affiliate link</span>
         </p>
         <p style={{ margin: "10px 0 4px", fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontSize: 15 }}>
-          $2.99/month on the 2-year plan
+          $2.49/month on the 2-year plan (Black Friday offer, 75% off)
         </p>
         <p className="muted" style={{ margin: "0 0 12px", fontSize: 14 }}>
-          $71.76 for the first 24 months, then $83.88 a year. 30-day money-back guarantee, 10 devices, split tunneling by IP range.
-          Read on Proton&apos;s partner page on 28 October 2026; the order page shows the price for your country.
+          $59.76 for the first 24 months, then it renews every 12 months at the standard price. 30-day money-back guarantee, 10 devices,
+          split tunneling by IP range. Offer for new accounts, read on Proton&apos;s partner page on 17 November 2026; the order page shows
+          the price for your country.
         </p>
         <p style={{ margin: 0, fontSize: 14 }}>
           <a className="btn sm" href="/out/vpn?from=allowedips-plus" rel="sponsored nofollow">See the Proton VPN Plus offer</a>{" "}
