@@ -68,7 +68,11 @@ export async function createServer(_prev: ActionState, form: FormData): Promise<
   const mtuRaw = String(form.get("mtu") ?? "").trim();
   const mtu = mtuRaw ? Number(mtuRaw) : null;
   if (!name) return fail(form, "Give the server a name.", SERVER_FIELDS);
-  if (!validEndpoint(endpoint)) return fail(form, "Endpoint must be a hostname or an IP address, without port.", SERVER_FIELDS);
+  if (!validEndpoint(endpoint)) {
+    // Counted (no value kept) to see whether the endpoint field is what stops a new account at its first server.
+    await recordHit("/dashboard:create-error-endpoint");
+    return fail(form, "Endpoint must be a hostname or an IP address, without port (vpn.example.com or 203.0.113.10). No server yet? Use the sample server above to look around.", SERVER_FIELDS);
+  }
   if (!Number.isInteger(port) || port < 1 || port > 65535) return fail(form, "Port must be between 1 and 65535.", SERVER_FIELDS);
   if (!parseCidr(subnet)) return fail(form, "Subnet must be IPv4 CIDR between /16 and /30, for example 10.8.0.0/24.", SERVER_FIELDS);
   if (!validDns(dns)) return fail(form, "DNS must be one or more addresses separated by commas.", SERVER_FIELDS);
@@ -83,6 +87,34 @@ export async function createServer(_prev: ActionState, form: FormData): Promise<
     data: { userId: user.id, name, endpoint, port, subnet, dns, mtu, publicKey: kp.publicKey, privateKeyEnc: encrypt(kp.privateKey) },
   });
   await recordHit("/dashboard:create-ok");
+  redirect(`/dashboard/servers/${server.id}`);
+}
+
+/**
+ * One click from an empty dashboard: a sample server with two devices, so a new account sees the wg0.conf, the client
+ * files and the QR codes before it has an endpoint to type. Real keys, placeholder endpoint; deleted like any server.
+ */
+export async function createSample() {
+  const user = await currentUser();
+  if (!user) redirect("/login");
+  const count = await db.server.count({ where: { userId: user.id } });
+  if (count > 0) redirect("/dashboard");
+  const subnet = "10.8.0.0/24";
+  const kp = wgKeypair();
+  const server = await db.server.create({
+    data: { userId: user.id, name: "Sample server (delete me)", endpoint: "vpn.example.com", port: 51820, subnet, dns: "1.1.1.1", mtu: null, publicKey: kp.publicKey, privateKeyEnc: encrypt(kp.privateKey) },
+  });
+  const ips: string[] = [];
+  for (const name of ["laptop", "phone"]) {
+    const ip = nextFreeIp(subnet, ips);
+    if (!ip) break;
+    ips.push(ip);
+    const pk = wgKeypair();
+    await db.peer.create({
+      data: { serverId: server.id, name, ip, publicKey: pk.publicKey, privateKeyEnc: encrypt(pk.privateKey), presharedKeyEnc: encrypt(wgPresharedKey()), allowedIps: "0.0.0.0/0, ::/0", keepalive: 25 },
+    });
+  }
+  await recordHit("/dashboard:sample-ok");
   redirect(`/dashboard/servers/${server.id}`);
 }
 
@@ -177,6 +209,7 @@ export async function addPeer(_prev: ActionState, form: FormData): Promise<Actio
   await db.peer.create({
     data: { serverId: server.id, name, ip, publicKey: kp.publicKey, privateKeyEnc: encrypt(kp.privateKey), presharedKeyEnc: encrypt(wgPresharedKey()), allowedIps, keepalive },
   });
+  await recordHit(`/dashboard:addpeer-ok-${peerBucket(server.peers.length + 1)}`);
   revalidatePath(`/dashboard/servers/${server.id}`);
   return undefined;
 }

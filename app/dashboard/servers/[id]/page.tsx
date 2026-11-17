@@ -28,6 +28,9 @@ export default async function ServerPage({ params, searchParams }: { params: Pro
       <p style={{ marginTop: 30 }}><a href="/dashboard">All servers</a></p>
       <h1>{server.name}</h1>
       {imported && <p className="ok">Imported with {imported} peer{imported === "1" ? "" : "s"}. Keys are unchanged: the server and the devices keep working as before.</p>}
+      {server.endpoint === "vpn.example.com" && (
+        <p className="ok">This is a sample: the keys, files and QR codes below are real, but vpn.example.com is a placeholder, so these files do not connect anywhere. Add a device to see how it works, then <a href="/dashboard#new">create your own server</a> with its public IP or <a href="/dashboard#import">import your wg0.conf</a>, and delete this one.</p>
+      )}
       <div className="panel" style={{ marginBottom: 24 }}>
         <table>
           <tbody>

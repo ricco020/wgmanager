@@ -6,7 +6,7 @@ import { FREE_LIMITS } from "@/lib/site";
 import { isPro, inTrial, trialEnd } from "@/lib/stripe";
 import { ServerForm } from "./ServerForm";
 import { ImportForm } from "./ImportForm";
-import { deleteServer } from "../actions";
+import { createSample, deleteServer } from "../actions";
 import { recordHit } from "@/lib/stats";
 
 export const metadata: Metadata = { title: "Dashboard" };
@@ -32,6 +32,10 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
       {servers.length === 0 && (
         <div className="panel" style={{ marginTop: 18 }}>
           <h2>Start here: which case are you in?</h2>
+          <form action={createSample} style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap", margin: "4px 0 16px" }}>
+            <button className="btn" type="submit">Just looking? Open a sample server</button>
+            <span className="muted" style={{ fontSize: 14 }}>One click, nothing to type: a server with two devices, their .conf files and QR codes. Delete it when you add your own.</span>
+          </form>
           <ol className="stack" style={{ paddingLeft: 20 }}>
             <li>
               <strong>WireGuard already runs on a server.</strong> <a href="#import">Paste its wg0.conf below</a>: keys and peer IPs stay as
