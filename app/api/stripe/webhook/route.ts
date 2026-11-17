@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createHmac, timingSafeEqual } from "crypto";
 import { db } from "@/lib/db";
-import { PROJECT, refreshPro } from "@/lib/stripe";
+import { PROJECT, grantPaidMonth, proFromSubscription } from "@/lib/stripe";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +16,9 @@ function signatureValid(raw: string, header: string, secret: string): boolean {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-/** Subscription events refresh proUntil from Stripe (idempotent: we re-read the state, we do not apply deltas). */
+/** Subscription events set proUntil from the signed payload itself (status and period end of the subscription):
+ *  the production key is restricted and cannot read subscriptions back, so re-asking Stripe left a paid
+ *  customer without Pro. Idempotent: each event carries the full state, we do not apply deltas. */
 export async function POST(req: Request) {
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
   if (!secret) return NextResponse.json({ error: "unavailable" }, { status: 503 });
@@ -40,7 +42,14 @@ export async function POST(req: Request) {
       const byId = await db.user.findUnique({ where: { id: meta.userId } });
       if (byId && !byId.stripeCustomerId) user = await db.user.update({ where: { id: byId.id }, data: { stripeCustomerId: customer } });
     }
-    if (user) await refreshPro(user);
+    if (user && meta?.projet === PROJECT) {
+      if (type === "checkout.session.completed") {
+        if (obj.mode === "subscription" && obj.payment_status === "paid") await grantPaidMonth(user);
+      } else {
+        const until = proFromSubscription(obj, type === "customer.subscription.deleted");
+        if (until !== undefined) await db.user.update({ where: { id: user.id }, data: { proUntil: until } });
+      }
+    }
   }
   console.log("webhook", JSON.stringify({ id: evt.id, type: evt.type, object: obj.id }));
   return NextResponse.json({ received: true });

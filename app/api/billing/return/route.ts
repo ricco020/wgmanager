@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { customerFromSession, refreshPro } from "@/lib/stripe";
+import { customerFromSession, grantPaidMonth, refreshPro } from "@/lib/stripe";
 import { SITE } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +15,9 @@ export async function GET(req: Request) {
     const user = await db.user.findUnique({ where: { id: found.userId } });
     if (user) {
       const u = await db.user.update({ where: { id: user.id }, data: { stripeCustomerId: found.customer } });
-      await refreshPro(u);
+      // The session is complete and paid (checked with Stripe): Pro opens now, then Stripe refines the date
+      // when the key can read subscriptions; when it cannot, the signed webhook does.
+      await refreshPro(await grantPaidMonth(u));
       return NextResponse.redirect(`${SITE}/dashboard?welcome=pro${after}`, 303);
     }
   }

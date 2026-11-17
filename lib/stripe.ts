@@ -68,35 +68,61 @@ export async function customerFromSession(sessionId: string): Promise<{ customer
   if (!sk || !/^cs_(live|test)_[A-Za-z0-9]+$/.test(sessionId)) return null;
   const r = await fetch(`${API}/checkout/sessions/${sessionId}`, { headers: headers(sk), cache: "no-store" });
   if (!r.ok) return null;
-  const s = (await r.json()) as { status?: string; customer?: string; metadata?: Record<string, string> };
-  if (s.metadata?.projet !== PROJECT || s.status !== "complete" || !s.customer || !s.metadata?.userId) return null;
+  const s = (await r.json()) as { status?: string; payment_status?: string; customer?: string; metadata?: Record<string, string> };
+  if (s.metadata?.projet !== PROJECT || s.status !== "complete" || s.payment_status !== "paid" || !s.customer || !s.metadata?.userId) return null;
   return { customer: s.customer, userId: s.metadata.userId };
 }
 
-/** Asks Stripe for the live subscription of this customer. Returns period end (s) or null. */
-export async function activePeriodEnd(customer: string): Promise<number | null> {
+type Sub = { status?: string; metadata?: Record<string, string>; current_period_end?: number; items?: { data?: { current_period_end?: number }[] } };
+
+function periodEnd(s: Sub): number {
+  return s.current_period_end ?? s.items?.data?.[0]?.current_period_end ?? Math.floor(Date.now() / 1000) + 30 * 86400;
+}
+
+/** Asks Stripe for the live subscription of this customer. Returns period end (s), null when Stripe says
+ *  there is none, undefined when Stripe could not be read (a restricted key without subscription_read
+ *  answers 403): the caller must then keep what it knows instead of taking Pro away. */
+export async function activePeriodEnd(customer: string): Promise<number | null | undefined> {
   const sk = process.env.STRIPE_SECRET_KEY;
-  if (!sk) return null;
+  if (!sk) return undefined;
   const r = await fetch(`${API}/subscriptions?customer=${encodeURIComponent(customer)}&status=all&limit=10`,
-    { headers: headers(sk), cache: "no-store" });
-  if (!r.ok) return null;
-  const d = (await r.json()) as { data?: { status: string; metadata?: Record<string, string>; current_period_end?: number; items?: { data?: { current_period_end?: number }[] } }[] };
+    { headers: headers(sk), cache: "no-store" }).catch(() => null);
+  if (!r || !r.ok) return undefined;
+  const d = (await r.json()) as { data?: Sub[] };
   let best: number | null = null;
   for (const s of d.data ?? []) {
     if (s.metadata?.projet !== PROJECT) continue;
     if (s.status !== "active" && s.status !== "trialing") continue;
-    const end = s.current_period_end ?? s.items?.data?.[0]?.current_period_end ?? Math.floor(Date.now() / 1000) + 30 * 86400;
+    const end = periodEnd(s);
     if (!best || end > best) best = end;
   }
   return best;
 }
 
-/** Refreshes user.proUntil from Stripe and returns the updated user. */
+/** Refreshes user.proUntil from Stripe and returns the updated user. Unreadable Stripe = no change. */
 export async function refreshPro(user: User): Promise<User> {
   if (!user.stripeCustomerId) return user;
   const end = await activePeriodEnd(user.stripeCustomerId);
+  if (end === undefined) return user;
   const proUntil = end ? new Date((end + GRACE_S) * 1000) : null;
   return db.user.update({ where: { id: user.id }, data: { proUntil } });
+}
+
+/** Pro end date read from a subscription object delivered by a signed webhook (no API read needed).
+ *  Date = paid period plus grace, null = subscription over, undefined = status that changes nothing. */
+export function proFromSubscription(s: Sub, deleted = false): Date | null | undefined {
+  if (s.metadata?.projet !== PROJECT) return undefined;
+  if (deleted || s.status === "canceled" || s.status === "unpaid" || s.status === "incomplete_expired") return null;
+  if (s.status === "active" || s.status === "trialing") return new Date((periodEnd(s) + GRACE_S) * 1000);
+  return undefined;
+}
+
+/** A paid Checkout session opens Pro for one month plus grace right away; the subscription events
+ *  that follow (creation, each renewal, cancellation) then set the exact date. Never shortens. */
+export async function grantPaidMonth(user: User): Promise<User> {
+  const until = new Date(Date.now() + 31 * 86400000 + GRACE_S * 1000);
+  if (user.proUntil && user.proUntil.getTime() >= until.getTime()) return user;
+  return db.user.update({ where: { id: user.id }, data: { proUntil: until } });
 }
 
 /** End of the no-card Pro trial: TRIAL_DAYS after the account was created. */
