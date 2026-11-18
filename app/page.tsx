@@ -71,7 +71,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
           Need a server first? WireGuard needs a machine with a public IP that stays on; a small Linux VPS is enough for a household
           or a small team. The smallest that runs it:{" "}
           <a href="/out/vps?from=home&p=hp" rel="sponsored nofollow">HostPapa VPS Lite</a> (1 core, 1 GB RAM, 25 GB NVMe,
-          2.95 USD/month on the 3-year term on 17 November 2026, 30-day money-back), or a{" "}
+          2.95 USD/month on the 3-year term on 17 November 2026, 30-day money-back),{" "}
+          <a href="/out/vps?from=home&p=hg" rel="sponsored nofollow">Hostinger KVM 1</a> if you also run Docker (1 vCPU, 4 GB RAM,
+          50 GB NVMe, 6.49 USD/month paid for 24 months on 18 November 2026, renewing at 11.99), or a{" "}
           <a href="/out/vps?from=home" rel="sponsored nofollow">Contabo VPS with WireGuard preinstalled</a>{" "}
           (affiliate links: VPNSmith may earn a commission, the price is the same for you). To compare the usual options, the free
           {" "}<a href="https://www.vpnsmith.com/en/tools/self-hosted-vpn-cost-calculator" rel="noopener">self-hosted VPN cost calculator</a>
