@@ -190,7 +190,9 @@ export function checkConfig(text: string): CheckResult {
       const v = Number(mtu.value);
       if (!Number.isInteger(v)) add("error", W, { p: `MTU "${mtu.value}" is not a number.`, c: "wg-quick fails when it sets the link MTU.", f: "Use 1420, or delete the line and let wg-quick compute it.", code: kv("mtu", "1420") }, mtu.line);
       else if (v < 1280) add("error", W, { p: `MTU ${v} is below 1280, the IPv6 minimum.`, c: "IPv6 through the tunnel breaks.", f: "1280 is the safe floor; 1420 is the usual value.", code: kv("mtu", "1280") }, mtu.line);
-      else if (v > 1420) add("warn", W, { p: `MTU ${v} is above 1420.`, c: "WireGuard adds 60 to 80 bytes of headers, so on a 1500 link larger packets fragment: pages that load halfway and stalled SSH are the usual symptom.", f: "Use 1420 (1380 behind PPPoE or a mobile network).", code: kv("mtu", "1420") }, mtu.line);
+      else if (v > 1420) add("warn", W, { p: `MTU ${v} is above 1420.`, c: "WireGuard adds 60 bytes of headers over IPv4 and 80 over IPv6, so full-size packets no longer fit a 1500 link. Over IPv4 they get fragmented on the way and usually still arrive; over IPv6, or wherever a firewall drops the ICMP \"packet too big\" replies, they vanish: the tunnel connects and small requests work, but downloads and SSH sessions stall.", f: "Use 1420 on a 1500 link, 1412 behind PPPoE (1492), lower on some mobile networks.", code: kv("mtu", "1420") }, mtu.line);
+    } else if (kind === "client" && peers.some((p) => /^\s*\[/.test(one(p, "endpoint")?.value ?? ""))) {
+      add("info", W, { p: "No MTU line and the Endpoint is an IPv6 address.", c: "wg-quick picks 1420 from the local 1500 link. Behind a PPPoE line (1492) that is 8 bytes too big over IPv6: if a firewall on the path drops ICMPv6 \"packet too big\", the handshake and small requests work but large transfers hang.", f: "If downloads stall through the tunnel on a PPPoE or DSL line, set MTU = 1412.", code: kv("mtu", "1412") }, iface.line);
     }
 
     const dns = get(iface, "dns");
