@@ -177,7 +177,7 @@ export function checkConfig(text: string): CheckResult {
       const a32 = addrs.find((a) => list(a.value).some((c) => v4(c, 32)?.prefix === 32));
       if (a32) {
         const ip = list(a32.value).find((c) => v4(c, 32)?.prefix === 32)!.split("/")[0];
-        add("warn", W, { p: "The server Address uses /32.", c: "The kernel does not route the other tunnel addresses to wg0: clients reach the server but not each other.", f: "Use the prefix of the whole tunnel subnet.", code: kv("address", `${ip}/24`) }, a32.line);
+        add("info", W, { p: "The server Address uses /32.", c: "wg-quick still adds a route for each peer's AllowedIPs, so clients reach the server and each other. Without wg-quick (ip commands, some panels) only the server address is routed to wg0 and clients cannot reach each other.", f: "Using the prefix of the whole tunnel subnet works in every setup.", code: kv("address", `${ip}/24`) }, a32.line);
       }
     }
 
@@ -239,15 +239,15 @@ export function checkConfig(text: string): CheckResult {
         if (x.hostBits) {
           const host = `${c.split("/")[0]}/32`;
           add("warn", W, kind === "server"
-            ? { p: `AllowedIPs ${c} has host bits set.`, c: `wg turns it into ${fmt(x)}: the server sends the whole range to this one peer.`, f: "A single client takes a /32.", code: kv("allowedips", all.filter((y) => y.line === line).map((y) => (y.c === c ? host : y.c)).join(", ")) }
+            ? { p: `AllowedIPs ${c} has host bits set.`, c: `wg turns it into ${fmt(x)}: every address of that range without a more specific line goes to this one peer.`, f: "A single client takes a /32.", code: kv("allowedips", all.filter((y) => y.line === line).map((y) => (y.c === c ? host : y.c)).join(", ")) }
             : { p: `AllowedIPs ${c} has host bits set.`, c: `wg silently turns it into ${fmt(x)}.`, f: "Write the network address.", code: kv("allowedips", all.filter((y) => y.line === line).map((y) => (y.c === c ? fmt(x) : y.c)).join(", ")) }, line);
         }
         routes.push({ net: x, peer: i + 1, line });
         if (kind === "server" && x.prefix === 32 && ifaceIps.includes(x.base)) add("error", W, { p: `AllowedIPs ${c} is the server's own tunnel address.`, c: "Traffic for the server itself is sent to this peer.", f: "Give this peer its own free address in the subnet." }, line);
-        if (kind === "server" && x.prefix === 32 && ifaceNets.length && !ifaceNets.some((n) => overlap(n, x))) add("warn", W, { p: `${c} is outside the server subnet (${ifaceNets.map(fmt).join(", ")}).`, c: "It works only if the client uses that address and you route it yourself.", f: "Use an address inside the server subnet, and the same one in the client's Address." }, line);
+        if (kind === "server" && x.prefix === 32 && ifaceNets.some((n) => n.prefix < 32) && !ifaceNets.some((n) => overlap(n, x))) add("warn", W, { p: `${c} is outside the server subnet (${ifaceNets.map(fmt).join(", ")}).`, c: "It works only if the client uses that address and you route it yourself.", f: "Use an address inside the server subnet, and the same one in the client's Address." }, line);
       } else if (!v6ok(c)) add("error", W, { p: `AllowedIPs entry "${c}" is not a valid address with prefix.`, c: "wg-quick refuses the file.", f: "Write each entry as address/prefix, separated by commas." }, line);
     }
-    if (kind === "server" && v4full && peers.length > 1) add("error", W, { p: "AllowedIPs 0.0.0.0/0 on a server peer.", c: "It routes ALL traffic to this one peer and starves the others.", f: "Give each client its own /32 (0.0.0.0/0 belongs in the client file).", code: kv("allowedips", "10.8.0.2/32") }, aips[0]?.line);
+    if (kind === "server" && v4full && peers.length > 1) add("error", W, { p: "AllowedIPs 0.0.0.0/0 on a server peer.", c: "wg routes by longest prefix, so clients with their own /32 still get their traffic, but every other address goes to this one peer: clients added later without their own line, and anything the server forwards into wg0.", f: "Give each client its own /32 (0.0.0.0/0 belongs in the client file).", code: kv("allowedips", "10.8.0.2/32") }, aips[0]?.line);
 
     const ep = one(p, "endpoint");
     if (ep) {
@@ -282,7 +282,9 @@ export function checkConfig(text: string): CheckResult {
       if (r1.peer !== r2.peer && overlap(r1.net, r2.net)) {
         // Point at the wider range: it is almost always the line to change (a client given a /24 instead of a /32).
         const wide = r1.net.prefix <= r2.net.prefix ? r1 : r2, narrow = wide === r1 ? r2 : r1;
-        add("error", `[Peer] ${wide.peer}`, { p: `AllowedIPs ${fmt(wide.net)} of peer ${wide.peer} overlaps ${fmt(narrow.net)} of peer ${narrow.peer}.`, c: `wg gives the shared addresses to the last peer loaded, so peer ${r1.peer} silently stops receiving that traffic: the classic "handshake OK, no traffic" bug.`, f: wide.net.prefix < 32 ? `Narrow peer ${wide.peer} to its single address with /32, so the two ranges are distinct.` : "Give each client its own /32, so the two ranges are distinct." }, wide.line);
+        const same = r1.net.prefix === r2.net.prefix && fmt(r1.net) === fmt(r2.net);
+        if (same) add("error", `[Peer] ${r1.peer}`, { p: `AllowedIPs ${fmt(r1.net)} is given to peer ${r1.peer} and peer ${r2.peer}.`, c: `wg keeps one owner per range: the peer loaded last (peer ${r2.peer}) takes it and peer ${r1.peer} silently loses it, the classic "handshake OK, no traffic" bug.`, f: r1.net.prefix < 32 ? `Give each client its own /32, so the ranges are distinct.` : "Give each client its own free /32." }, r1.line);
+        else if (!F.some((f) => f.line === wide.line && /host bits|on a server peer/.test(f.problem))) add("warn", `[Peer] ${wide.peer}`, { p: `AllowedIPs ${fmt(wide.net)} of peer ${wide.peer} contains ${fmt(narrow.net)} of peer ${narrow.peer}.`, c: `wg routes by longest prefix: ${fmt(narrow.net)} goes to peer ${narrow.peer}, but every other address of ${fmt(wide.net)}, including clients you add later without their own line, goes to peer ${wide.peer}, and the server accepts packets from peer ${wide.peer} with any of those source addresses.`, f: wide.net.prefix < 32 ? `Narrow peer ${wide.peer} to its single address with /32 (unless it really is a gateway for that network).` : "Give each client its own /32." }, wide.line);
       }
     }
   }
