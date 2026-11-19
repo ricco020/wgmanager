@@ -93,6 +93,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         </div>
       )}
       {servers.length > 0 && (
+        <div style={{ overflowX: "auto" }}>
         <table>
           <thead><tr><th>Name</th><th>Endpoint</th><th>Subnet</th><th>Peers</th><th></th></tr></thead>
           <tbody>
@@ -109,6 +110,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
             ))}
           </tbody>
         </table>
+        </div>
       )}
       <div className="panel" id="new" style={{ marginTop: 30 }}>
         <h2>New server</h2>
