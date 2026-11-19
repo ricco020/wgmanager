@@ -9,17 +9,17 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "WireGuard config checker: validate a wg0.conf, add a peer",
-  description: "Paste a WireGuard config and find what breaks it: truncated keys, overlapping AllowedIPs, missing Endpoint, MTU above 1420, IPv6 and DNS leaks in full tunnel. Then add a peer: next free IP, keys, client .conf and QR code. Runs in your browser, keys are never uploaded.",
+  description: "Paste a WireGuard config and find what breaks it: truncated keys, overlapping AllowedIPs, missing Endpoint, an MTU that stalls behind PPPoE or IPv6, IPv6 and DNS leaks in full tunnel. Then add a peer: next free IP, keys, client .conf and QR code. Runs in your browser, keys are never uploaded.",
   alternates: { canonical: `${SITE}/check` },
 };
 
 const CHECKS: Array<[string, string]> = [
   ["Keys", "Each PrivateKey, PublicKey and PresharedKey must be 44 base64 characters that decode to 32 bytes. A key cut by a terminal or a chat app fails here, and so does a private key pasted where the other side's public key goes."],
   ["Unknown keys and sections", "wg-quick refuses the whole file on a single typo (\"AllowdIPs\", \"[Peers]\") or a key in the wrong section, such as Endpoint under [Interface]."],
-  ["Overlapping AllowedIPs", "On a server, two peers whose AllowedIPs overlap fight over the same addresses: wg hands the range to the last peer loaded, the other one keeps its handshake but receives nothing. 10.8.0.2/24 instead of 10.8.0.2/32 is the usual cause."],
+  ["Overlapping AllowedIPs", "On a server, the same range on two peers keeps one owner: the peer loaded last takes it, the other one keeps its handshake but receives nothing. A range nested in another (10.8.0.2/24 next to 10.8.0.3/32) still routes by longest prefix, but every address of the /24 without its own line goes to that one peer. Measured on a Linux 6.8 kernel."],
   ["Duplicate peers", "The same PublicKey listed twice keeps only one entry, so one device can never connect."],
   ["Endpoint", "A client needs Endpoint = host:port to start the handshake. An Endpoint on a private address (192.168.x.x, 10.x.x.x) only works from inside that network."],
-  ["MTU", "Above 1420 on a standard 1500 link, packets fragment once WireGuard adds its headers: sites load halfway, SSH stalls after login. Below 1280, IPv6 breaks."],
+  ["MTU", "Over an IPv4 endpoint a too large MTU gets fragmented and still works, only slower. Over IPv6, routers never fragment: with 1420 behind a 1492 PPPoE link and ICMPv6 filtered, large transfers stall (SSH freezes after login). 1412 fits. Below 1280, IPv6 breaks."],
   ["Leaks in full tunnel", "0.0.0.0/0 without ::/0 lets IPv6 traffic bypass the tunnel. A full tunnel without a DNS line keeps sending lookups to the local resolver."],
   ["Server hygiene", "Missing ListenPort (random port at each start), DNS on the server (it rewrites the server's own resolver), SaveConfig = true (hand edits overwritten), the NAT interface name in PostUp."],
 ];
