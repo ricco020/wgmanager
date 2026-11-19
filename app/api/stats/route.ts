@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { timingSafeEqual } from "crypto";
 import { db } from "@/lib/db";
+import { FREE_LIMITS, TRIAL_DAYS } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +32,27 @@ export async function GET(req: Request) {
     db.hit.findMany({ where: { day: { gte: since } }, orderBy: [{ day: "asc" }, { path: "asc" }] }),
     db.user.groupBy({ by: ["ref"], _count: { _all: true }, where: { NOT: { email: TEST_EMAIL } } }),
   ]);
+  // Paywall funnel (19/11/2026, ndd-saas-2): only an account above the free limits can need Pro,
+  // so count them, split by trial state. No email leaves the server: counts and day buckets only.
+  const accounts = await db.user.findMany({
+    where: { NOT: { email: TEST_EMAIL } },
+    select: { createdAt: true, proUntil: true, servers: { select: { _count: { select: { peers: true } } } } },
+  });
+  const funnel = { inTrial: 0, trialEnded: 0, withServer: 0, aboveFreeInTrial: 0, aboveFreeAfterTrial: 0, atPeerLimit: 0,
+    trialEndsNext7d: 0, peersMax: 0 };
+  for (const a of accounts) {
+    const end = a.createdAt.getTime() + TRIAL_DAYS * 86400000;
+    const trial = end > now.getTime();
+    const nPeers = a.servers.reduce((t, s) => t + s._count.peers, 0);
+    const above = a.servers.length > FREE_LIMITS.servers || nPeers > FREE_LIMITS.peers;
+    if (trial) funnel.inTrial++; else funnel.trialEnded++;
+    if (a.servers.length > 0) funnel.withServer++;
+    if (above && trial) funnel.aboveFreeInTrial++;
+    if (above && !trial) funnel.aboveFreeAfterTrial++;
+    if (!above && nPeers === FREE_LIMITS.peers) funnel.atPeerLimit++;
+    if (trial && end - now.getTime() < 7 * 86400000) funnel.trialEndsNext7d++;
+    funnel.peersMax = Math.max(funnel.peersMax, nPeers);
+  }
   const days: Record<string, Record<string, number>> = {};
   const refs: Record<string, number> = {};
   for (const h of hits) {
@@ -39,7 +61,7 @@ export async function GET(req: Request) {
   }
   return NextResponse.json({
     at: now.toISOString(),
-    users, pro, servers, peers,
+    users, pro, servers, peers, funnel,
     hitsByDay: days,
     hitsByRef: refs,
     signupsByRef: Object.fromEntries(byRef.map((r) => [r.ref ?? "(direct)", r._count._all])),
