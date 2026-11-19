@@ -51,7 +51,10 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
               enough for that traffic. Smallest that runs it: HostPapa VPS Lite (1 core, 1 GB RAM, 25 GB NVMe, 2.95 USD/month on the
               3-year term on 17 November 2026).{" "}
               <a className="btn sm" href="/out/vps?from=empty&p=hp" rel="sponsored nofollow">See HostPapa VPS Lite</a>{" "}
-              <a href="/out/vps?from=empty" rel="sponsored nofollow">or Contabo with WireGuard preinstalled</a>{" "}
+              If the same machine also runs Docker (Pi-hole, a reverse proxy):{" "}
+              <a href="/out/vps?from=empty&p=hg" rel="sponsored nofollow">Hostinger KVM 1</a>, 4 GB RAM, 6.49 USD/month paid for 24 months
+              on 18 November 2026, renewing at 11.99.{" "}
+              <a href="/out/vps?from=empty" rel="sponsored nofollow">Or Contabo with WireGuard preinstalled</a>.{" "}
               <span className="muted">(affiliate links: VPNSmith may earn a commission, the price is the same for you). Then come back and
               create the server here with its IP.</span>
             </li>
