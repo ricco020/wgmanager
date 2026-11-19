@@ -7,7 +7,7 @@ import { revalidatePath } from "next/cache";
 import { COOKIE, COOKIE_OPTIONS, currentUser, hashPassword, passwordAcceptable, signSession, verifyPassword } from "@/lib/auth";
 import { encrypt, wgKeypair, wgPresharedKey, wgPublicKeyOf } from "@/lib/crypto";
 import { db } from "@/lib/db";
-import { FREE_LIMITS } from "@/lib/site";
+import { FREE_LIMITS, SAMPLE_NAME } from "@/lib/site";
 import { cleanRef, peerBucket, recordHit } from "@/lib/stats";
 import { proAccess, inTrial } from "@/lib/stripe";
 import { nextFreeIp, parseCidr, parseServerConf, validDns, validEndpoint } from "@/lib/wg";
@@ -102,7 +102,7 @@ export async function createSample() {
   const subnet = "10.8.0.0/24";
   const kp = wgKeypair();
   const server = await db.server.create({
-    data: { userId: user.id, name: "Sample server (delete me)", endpoint: "vpn.example.com", port: 51820, subnet, dns: "1.1.1.1", mtu: null, publicKey: kp.publicKey, privateKeyEnc: encrypt(kp.privateKey) },
+    data: { userId: user.id, name: SAMPLE_NAME, endpoint: "vpn.example.com", port: 51820, subnet, dns: "1.1.1.1", mtu: null, publicKey: kp.publicKey, privateKeyEnc: encrypt(kp.privateKey) },
   });
   const ips: string[] = [];
   for (const name of ["laptop", "phone"]) {

@@ -6,6 +6,8 @@ export const FREE_LIMITS = { servers: 1, peers: 3 };
 /** Every new account has Pro limits lifted for this many days, no card. After that the free limits apply to what is
  *  added (servers and peers already there stay, with their downloads). */
 export const TRIAL_DAYS = 14;
+/** Name of the one-click sample server (app/actions.ts makeSample), counted apart in /api/stats. */
+export const SAMPLE_NAME = "Sample server (delete me)";
 export const EMAIL = "ads.ericgerard@gmail.com";
 export const LEGAL_PUBLISHER = {
   name: "Eric LEROY",

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { timingSafeEqual } from "crypto";
 import { db } from "@/lib/db";
-import { FREE_LIMITS, TRIAL_DAYS } from "@/lib/site";
+import { FREE_LIMITS, TRIAL_DAYS, SAMPLE_NAME } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
@@ -36,10 +36,12 @@ export async function GET(req: Request) {
   // so count them, split by trial state. No email leaves the server: counts and day buckets only.
   const accounts = await db.user.findMany({
     where: { NOT: { email: TEST_EMAIL } },
-    select: { createdAt: true, proUntil: true, servers: { select: { _count: { select: { peers: true } } } } },
+    select: { createdAt: true, proUntil: true, servers: { select: { name: true, endpoint: true, _count: { select: { peers: true } }, peers: { where: { privateKeyEnc: null }, select: { id: true }, take: 1 } } } },
   });
   const funnel = { inTrial: 0, trialEnded: 0, withServer: 0, aboveFreeInTrial: 0, aboveFreeAfterTrial: 0, atPeerLimit: 0,
-    trialEndsNext7d: 0, peersMax: 0 };
+    trialEndsNext7d: 0, peersMax: 0,
+    // First action after signup (19/11, ndd-saas-2): sample server kept, imported wg0.conf (peers without a private key), own created server.
+    withSample: 0, withImport: 0, withOwnCreated: 0, sampleOnly: 0 };
   for (const a of accounts) {
     const end = a.createdAt.getTime() + TRIAL_DAYS * 86400000;
     const trial = end > now.getTime();
@@ -52,6 +54,14 @@ export async function GET(req: Request) {
     if (!above && nPeers === FREE_LIMITS.peers) funnel.atPeerLimit++;
     if (trial && end - now.getTime() < 7 * 86400000) funnel.trialEndsNext7d++;
     funnel.peersMax = Math.max(funnel.peersMax, nPeers);
+    const isSample = (s: { name: string; endpoint: string }) => s.name === SAMPLE_NAME || s.endpoint === "vpn.example.com";
+    const sample = a.servers.some(isSample);
+    const imported = a.servers.some((s) => !isSample(s) && s.peers.length > 0);
+    const own = a.servers.some((s) => !isSample(s) && s.peers.length === 0);
+    if (sample) funnel.withSample++;
+    if (imported) funnel.withImport++;
+    if (own) funnel.withOwnCreated++;
+    if (sample && !imported && !own) funnel.sampleOnly++;
   }
   const days: Record<string, Record<string, number>> = {};
   const refs: Record<string, number> = {};
