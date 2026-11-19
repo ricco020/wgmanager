@@ -66,7 +66,9 @@ export default async function Pricing({ searchParams }: { searchParams: Promise<
       <p className="muted">
         Both plans manage WireGuard servers you run yourself. No server yet? A small Linux VPS with a public IP is enough for a household
         or a small team. Affiliate links, VPNSmith may earn a commission and the price is the same for you:{" "}
-        <a href="/out/vps?from=pricing&p=hp" rel="sponsored nofollow">HostPapa VPS Lite, 2.95 USD/month on 3 years</a>{" "}
+        <a href="/out/vps?from=pricing&p=hp" rel="sponsored nofollow">HostPapa VPS Lite, 2.95 USD/month on 3 years</a>,{" "}
+        <a href="/out/vps?from=pricing&p=hg" rel="sponsored nofollow">Hostinger KVM 1</a> if the same machine also runs Docker
+        (4 GB RAM, 6.49 USD/month paid for 24 months on 18 November 2026, renewing at 11.99),
         or a <a href="/out/vps?from=pricing" rel="sponsored nofollow">Contabo VPS with WireGuard preinstalled</a>.
       </p>
       <p className="muted">Payments are handled by Stripe. We never see your card number. Prices are in euros; your bank converts if your account is in another currency.</p>
