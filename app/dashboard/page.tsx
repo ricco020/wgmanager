@@ -29,6 +29,15 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
     redirect(`/dashboard/servers/${id}?first=1`);
   }
   await recordHit(servers.length ? "/dashboard" : "/dashboard:empty");
+  // Trial end banner (19/11, ndd-saas-2): the funnel shows 1 account of 21 above the free limits, inside its trial, and
+  // 6 trials ending within 7 days; the only notice was a muted line under the forms. Shown at the top, only when the
+  // trial date changes something for this account (above the free limits) or in its last 4 days with a server of its own.
+  const own = servers.filter((s) => s.endpoint !== "vpn.example.com");
+  const ownPeers = own.reduce((n, s) => n + s._count.peers, 0);
+  const daysLeft = Math.max(0, Math.ceil((trialEnd(user).getTime() - Date.now()) / 86400000));
+  const above = own.length > FREE_LIMITS.servers || ownPeers > FREE_LIMITS.peers;
+  const trialBanner = trial && own.length > 0 && (above || daysLeft <= 4);
+  if (trialBanner) await recordHit(above ? "/dashboard:trial-banner-above" : "/dashboard:trial-banner-end");
   const canAdd = pro || trial || servers.filter((s) => s.endpoint !== "vpn.example.com").length < FREE_LIMITS.servers;
   return (
     <>
@@ -36,6 +45,20 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         <h1>Servers</h1>
         <span className={pro ? "tag pro" : "tag"}>{pro ? "Pro" : trial ? `Pro trial until ${trialUntil}` : `Free: ${FREE_LIMITS.servers} server, ${FREE_LIMITS.peers} peers`}</span>
       </div>
+      {trialBanner && (
+        <div className="panel" style={{ marginTop: 18, borderColor: "var(--amber)" }}>
+          <p style={{ margin: 0 }}>
+            <strong>Your Pro trial ends {daysLeft <= 1 ? "within a day" : `in ${daysLeft} days`} ({trialUntil}).</strong>{" "}
+            {above
+              ? `This account has ${own.length} server${own.length > 1 ? "s" : ""} and ${ownPeers} peers; the free plan allows ${FREE_LIMITS.servers} server and ${FREE_LIMITS.peers} peers. Everything here stays, with its .conf files and QR codes, but adding a server or a peer after that date needs Pro.`
+              : `After that date you keep what is here; adding more than ${FREE_LIMITS.servers} server or ${FREE_LIMITS.peers} peers needs Pro.`}
+          </p>
+          <form action="/api/stripe/checkout" method="post" style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap", marginTop: 12 }}>
+            <button className="btn" type="submit">Keep Pro: 9 EUR/month</button>
+            <span className="muted" style={{ fontSize: 14 }}>Card through Stripe, cancel any time from this dashboard.</span>
+          </form>
+        </div>
+      )}
       {welcome === "pro" && <p className="ok">Pro is active. Limits are lifted on this account.</p>}
       {servers.length === 0 && (
         <div className="panel" style={{ marginTop: 18 }}>
