@@ -28,6 +28,12 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
             <a className="btn ghost" href="/pricing">Compare plans</a>
           </p>
           <p className="muted fade d3">No card. Every new account has Pro limits lifted for {TRIAL_DAYS} days, so a server of any size can be imported. Pro: unlimited servers and peers, {PRO_PRICE_EUR} EUR/month, cancel anytime. Only need the config files once? <a href="https://www.vpnsmith.com/en/tools/wireguard-config-generator?ref=wgm-home">the generator is free</a>.</p>
+          <p className="muted fade d3">
+            No server yet? WireGuard needs a Linux VPS with a public IP:{" "}
+            <a href="/out/vps?from=home-top&p=hp" rel="sponsored nofollow">HostPapa VPS Lite, 2.95 USD/month on 3 years</a>, or{" "}
+            <a href="/out/vps?from=home-top&p=hg" rel="sponsored nofollow">Hostinger KVM 1 with 4 GB RAM for Docker too</a>{" "}
+            (affiliate links, details below).
+          </p>
         </div>
         <figure className="fade d2" style={{ margin: 0 }}>
           <img
