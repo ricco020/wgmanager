@@ -8,20 +8,28 @@ import { ServerForm } from "./ServerForm";
 import { ImportForm } from "./ImportForm";
 import { createSample, deleteServer } from "../actions";
 import { recordHit } from "@/lib/stats";
+import { makeSample } from "@/lib/sample";
 
 export const metadata: Metadata = { title: "Dashboard" };
 export const dynamic = "force-dynamic";
 
-export default async function Dashboard({ searchParams }: { searchParams: Promise<{ welcome?: string }> }) {
+export default async function Dashboard({ searchParams }: { searchParams: Promise<{ welcome?: string; sample?: string }> }) {
   const user = await currentUser();
   if (!user) redirect("/login");
   const pro = await isPro(user);
   const trial = !pro && inTrial(user);
   const trialUntil = trialEnd(user).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
-  const { welcome } = await searchParams;
+  const { welcome, sample } = await searchParams;
   const servers = await db.server.findMany({ where: { userId: user.id }, orderBy: { createdAt: "asc" }, include: { _count: { select: { peers: true } } } });
+  // Right after signup (19/11, ndd-saas-2): 13 of 21 accounts never created anything, so a new account lands on a
+  // sample server with its QR codes instead of an empty form. Only once: with any server, sample=1 is ignored.
+  if (sample === "1" && servers.length === 0) {
+    const id = await makeSample(user.id);
+    await recordHit("/dashboard:sample-auto");
+    redirect(`/dashboard/servers/${id}?first=1`);
+  }
   await recordHit(servers.length ? "/dashboard" : "/dashboard:empty");
-  const canAdd = pro || trial || servers.length < FREE_LIMITS.servers;
+  const canAdd = pro || trial || servers.filter((s) => s.endpoint !== "vpn.example.com").length < FREE_LIMITS.servers;
   return (
     <>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 40 }}>

@@ -9,6 +9,7 @@ import { encrypt, wgKeypair, wgPresharedKey, wgPublicKeyOf } from "@/lib/crypto"
 import { db } from "@/lib/db";
 import { FREE_LIMITS, SAMPLE_NAME } from "@/lib/site";
 import { cleanRef, peerBucket, recordHit } from "@/lib/stats";
+import { makeSample } from "@/lib/sample";
 import { proAccess, inTrial } from "@/lib/stripe";
 import { nextFreeIp, parseCidr, parseServerConf, validDns, validEndpoint } from "@/lib/wg";
 
@@ -42,7 +43,7 @@ export async function signup(_prev: ActionState, form: FormData): Promise<Action
   const ref = cleanRef((await cookies()).get("wg_ref")?.value);
   const user = await db.user.create({ data: { email, hash: hashPassword(password), ref: ref || null } });
   await setSession(user.id);
-  redirect(next === "pro" ? "/pricing" : next === "import" ? "/dashboard#import" : "/dashboard");
+  redirect(next === "pro" ? "/pricing" : next === "import" ? "/dashboard#import" : "/dashboard?sample=1");
 }
 
 export async function login(_prev: ActionState, form: FormData): Promise<ActionState> {
@@ -78,7 +79,8 @@ export async function createServer(_prev: ActionState, form: FormData): Promise<
   if (!validDns(dns)) return fail(form, "DNS must be one or more addresses separated by commas.", SERVER_FIELDS);
   if (mtu !== null && (!Number.isInteger(mtu) || mtu < 1280 || mtu > 1500)) return fail(form, "MTU must be between 1280 and 1500, or empty.", SERVER_FIELDS);
 
-  const count = await db.server.count({ where: { userId: user.id } });
+  // The sample server never takes the free slot: an account can always replace it by its own.
+  const count = await db.server.count({ where: { userId: user.id, NOT: { endpoint: "vpn.example.com" } } });
   if (count >= FREE_LIMITS.servers && !(await proAccess(user))) {
     return fail(form, `The free plan includes ${FREE_LIMITS.servers} server. Upgrade to Pro for unlimited servers.`, SERVER_FIELDS);
   }
@@ -99,23 +101,9 @@ export async function createSample() {
   if (!user) redirect("/login");
   const count = await db.server.count({ where: { userId: user.id } });
   if (count > 0) redirect("/dashboard");
-  const subnet = "10.8.0.0/24";
-  const kp = wgKeypair();
-  const server = await db.server.create({
-    data: { userId: user.id, name: SAMPLE_NAME, endpoint: "vpn.example.com", port: 51820, subnet, dns: "1.1.1.1", mtu: null, publicKey: kp.publicKey, privateKeyEnc: encrypt(kp.privateKey) },
-  });
-  const ips: string[] = [];
-  for (const name of ["laptop", "phone"]) {
-    const ip = nextFreeIp(subnet, ips);
-    if (!ip) break;
-    ips.push(ip);
-    const pk = wgKeypair();
-    await db.peer.create({
-      data: { serverId: server.id, name, ip, publicKey: pk.publicKey, privateKeyEnc: encrypt(pk.privateKey), presharedKeyEnc: encrypt(wgPresharedKey()), allowedIps: "0.0.0.0/0, ::/0", keepalive: 25 },
-    });
-  }
+  const id = await makeSample(user.id);
   await recordHit("/dashboard:sample-ok");
-  redirect(`/dashboard/servers/${server.id}`);
+  redirect(`/dashboard/servers/${id}`);
 }
 
 /** A private key from wg-easy's wg0.json is kept only if it really belongs to the peer's public key. */
@@ -151,7 +139,8 @@ export async function importServer(_prev: ActionState, form: FormData): Promise<
     conf.port = p;
   }
   const pro = await proAccess(user);
-  const count = await db.server.count({ where: { userId: user.id } });
+  // The sample server never takes the free slot: an account can always replace it by its own.
+  const count = await db.server.count({ where: { userId: user.id, NOT: { endpoint: "vpn.example.com" } } });
   if (count >= FREE_LIMITS.servers && !pro) {
     return fail(form, `The free plan includes ${FREE_LIMITS.servers} server. Upgrade to Pro to import more.`, IMPORT_FIELDS);
   }
