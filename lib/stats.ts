@@ -16,6 +16,13 @@ export async function recordHit(path: string, ref?: string | null): Promise<void
     const h = await headers();
     const ua = h.get("user-agent") ?? "";
     if (!ua || BOT_RE.test(ua)) return;
+    // Scripted clients that borrow a browser user agent: a real Chrome or Firefox always sends Sec-Fetch-Mode, and a page
+    // the visitor opens (typed, clicked, reloaded, redirected from vpnsmith) carries Sec-Fetch-User ?1. A navigation without
+    // it is a script calling page.goto: on 20/11 such a pass clicked every /out link of /, /pricing and /allowedips the same
+    // number of times (home-hp 8 = home-hg 8) and would have read as affiliate demand.
+    const mode = h.get("sec-fetch-mode");
+    if (!mode && /Chrome\/|Firefox\//.test(ua)) return;
+    if (mode === "navigate" && h.get("sec-fetch-user") !== "?1") return;
     const day = new Date().toISOString().slice(0, 10);
     const r = cleanRef(ref) || cleanRef(h.get("cookie")?.match(/(?:^|;\s*)wg_ref=([^;]*)/)?.[1]);
     await db.hit.upsert({
