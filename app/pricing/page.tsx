@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { currentUser } from "@/lib/auth";
-import { FREE_LIMITS, PRO_PRICE_EUR, SITE, TRIAL_DAYS } from "@/lib/site";
+import { FREE_LIMITS, PRO_FOR_SALE, PRO_PRICE_EUR, SITE, TRIAL_DAYS } from "@/lib/site";
 import { isPro, stripeReady } from "@/lib/stripe";
 import { recordHit } from "@/lib/stats";
 
@@ -43,6 +43,8 @@ export default async function Pricing({ searchParams }: { searchParams: Promise<
           </ul>
           {pro ? (
             <span className="ok">You are on Pro. Thank you.</span>
+          ) : !PRO_FOR_SALE ? (
+            <span className="muted">Pro is closed to new subscriptions. Current subscribers keep it and manage it from the dashboard.</span>
           ) : user ? (
             ready ? (
               <form action="/api/stripe/checkout" method="post"><button className="btn" type="submit">Upgrade to Pro</button></form>

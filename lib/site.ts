@@ -2,6 +2,9 @@ export const SITE = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
 export const PRODUCT = "WireGuard Manager";
 export const BRAND = "by VPNSmith";
 export const PRO_PRICE_EUR = 9;
+/** Verdict du 03/12/2026 (NDD scripts/wgmanager-verdict.py) : false = Pro n est plus vendu sur les pages publiques
+ *  (accueil, pricing, qr, allowedips) ; abonnes existants et portail Stripe inchanges. */
+export const PRO_FOR_SALE = true;
 export const FREE_LIMITS = { servers: 1, peers: 3 };
 /** Every new account has Pro limits lifted for this many days, no card. After that the free limits apply to what is
  *  added (servers and peers already there stay, with their downloads). */

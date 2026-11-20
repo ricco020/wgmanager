@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { recordHit } from "@/lib/stats";
-import { FREE_LIMITS, PRO_PRICE_EUR, SITE } from "@/lib/site";
+import { FREE_LIMITS, PRO_FOR_SALE, PRO_PRICE_EUR, SITE } from "@/lib/site";
 import { QrTool } from "./QrTool";
 
 export const dynamic = "force-dynamic";
@@ -56,8 +56,8 @@ export default async function QrPage({ searchParams }: { searchParams: Promise<{
         <h2>A QR code for every device, kept in one place</h2>
         <p className="muted">
           WireGuard Manager keeps the server and its peers: adding a phone gives you the next free address, new keys and its QR code
-          in one step, and a lost device is revoked by rotating its keys. Free for {FREE_LIMITS.servers} server and {FREE_LIMITS.peers} peers,
-          Pro at {PRO_PRICE_EUR} EUR/month for unlimited servers and peers. Already running a server? Its wg0.conf can be imported as it is.
+          in one step, and a lost device is revoked by rotating its keys. Free for {FREE_LIMITS.servers} server and {FREE_LIMITS.peers} peers{PRO_FOR_SALE ? `,
+          Pro at ${PRO_PRICE_EUR} EUR/month for unlimited servers and peers` : ""}. Already running a server? Its wg0.conf can be imported as it is.
         </p>
         <p><a className="btn" href="/signup?ref=qr">Create a free account</a></p>
       </section>

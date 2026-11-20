@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { recordHit } from "@/lib/stats";
 import { JsonLd, toolLd } from "@/lib/jsonld";
-import { FREE_LIMITS, PRO_PRICE_EUR, SITE } from "@/lib/site";
+import { FREE_LIMITS, PRO_FOR_SALE, PRO_PRICE_EUR, SITE } from "@/lib/site";
 import { Calculator } from "./Calculator";
 
 export const dynamic = "force-dynamic";
@@ -87,8 +87,8 @@ export default async function AllowedIpsPage({ searchParams }: { searchParams: P
         <p className="muted">
           In WireGuard Manager, a peer can be created as &quot;full tunnel, local network still reachable&quot;: the client file
           comes out with this list already computed, the server&apos;s tunnel subnet kept in, keys generated and a QR code for
-          the phone. Free for {FREE_LIMITS.servers} server and {FREE_LIMITS.peers} peers, Pro at {PRO_PRICE_EUR} EUR/month for
-          unlimited servers and peers. Already running a server? Paste its wg0.conf in the{" "}
+          the phone. Free for {FREE_LIMITS.servers} server and {FREE_LIMITS.peers} peers{PRO_FOR_SALE ? `, Pro at ${PRO_PRICE_EUR} EUR/month for
+          unlimited servers and peers` : ""}. Already running a server? Paste its wg0.conf in the{" "}
           <a href="/check?ref=allowedips">config checker</a> first, then import it.
         </p>
         <p><a className="btn" href="/signup?ref=allowedips">Create a free account</a></p>
