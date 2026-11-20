@@ -4,6 +4,7 @@ import { recordHit } from "@/lib/stats";
 import { JsonLd, toolLd } from "@/lib/jsonld";
 import { SITE } from "@/lib/site";
 import { Checker } from "./Checker";
+import { PairCheck } from "./PairCheck";
 
 export const dynamic = "force-dynamic";
 
@@ -52,6 +53,10 @@ export default async function CheckPage({ searchParams }: { searchParams: Promis
         <Checker signedIn={!!user} />
       </section>
 
+      <section className="fade d3" style={{ marginBottom: 32 }}>
+        <PairCheck />
+      </section>
+
       <div className="info2">
         <section className="panel">
           <h2>What it checks</h2>
@@ -83,7 +88,7 @@ export default async function CheckPage({ searchParams }: { searchParams: Promis
             <p className="muted">
               A file can be perfect and the tunnel still down. The checker does not know whether UDP port{" "}
               <code>51820</code> is open in your firewall or cloud security group, whether <code>net.ipv4.ip_forward</code> is on,
-              or whether the client&apos;s PublicKey really matches the private key on the device. If the file passes, check those next,
+              or whether the keys of the two sides match (paste both files in the <a href="#pair">pair check</a> for that). If the file passes, check those next,
               and run <code>wg show</code> on the server: a &quot;latest handshake&quot; line tells you the keys and the port are right.
             </p>
           </details>

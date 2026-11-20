@@ -61,7 +61,7 @@ const unb64url = (s: string) => Uint8Array.from(atob(s.replace(/-/g, "+").replac
 // PKCS#8 header of a raw X25519 private key (RFC 8410): 16 fixed bytes, then the 32 key bytes.
 const PKCS8_X25519 = Uint8Array.from([0x30, 0x2e, 0x02, 0x01, 0x00, 0x30, 0x05, 0x06, 0x03, 0x2b, 0x65, 0x6e, 0x04, 0x22, 0x04, 0x20]);
 
-async function publicFromPrivate(priv: string): Promise<string> {
+export async function publicFromPrivate(priv: string): Promise<string> {
   const raw = Uint8Array.from(atob(priv), (c) => c.charCodeAt(0));
   if (raw.length !== 32) throw new Error("bad key");
   const der = new Uint8Array(48);
