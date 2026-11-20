@@ -93,6 +93,8 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
     window.location.href = signedIn ? "/dashboard#import" : `/signup?next=import&peers=${peers}`;
   }
 
+  // Client sending everything into the tunnel (0.0.0.0/0): the usual reason a LAN device stops answering once connected.
+  const fullTunnel = /^\s*AllowedIPs\s*=.*\b0\.0\.0\.0\/0\b/im.test(text);
   const counts = res ? { error: 0, warn: 0, info: 0, ...Object.fromEntries((["error", "warn", "info"] as const).map((l) => [l, res.findings.filter((f) => f.level === l).length])) } : null;
 
   return (
@@ -195,6 +197,17 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
                 ? "This file needs a Linux machine with a public IP that stays on. A home box works if the router forwards the UDP port; otherwise a small VPS is enough for a household or a small team: copy the file to /etc/wireguard/wg0.conf, then wg-quick up wg0."
                 : "A client file points to a server. If you do not have one yet, a small Linux VPS with a public IP is enough: install WireGuard, write its wg0.conf with the free generator on VPNSmith, then paste it here to check it."}
             />
+          )}
+          {res.kind === "client" && fullTunnel && (
+            <div className="handoff">
+              <h3>Full tunnel: your LAN goes through the server too</h3>
+              <p className="muted">
+                With <code>AllowedIPs = 0.0.0.0/0</code>, every address, including your home or office network, is routed into the tunnel while it is up:
+                the printer, the NAS or the router admin page stop answering. WireGuard has no exclude option; the fix is a list of ranges that covers
+                everything except your LAN.{" "}
+                <a href="/allowedips?ref=check-full">Compute that AllowedIPs list for your subnet</a>, in the browser, ready to paste.
+              </p>
+            </div>
           )}
           {res.kind === "client" && counts.error === 0 && !res.privateEndpoint && (
             <div className="handoff">
