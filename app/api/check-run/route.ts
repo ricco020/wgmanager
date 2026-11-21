@@ -10,6 +10,7 @@ export async function POST(req: Request) {
   else if (kind === "allowedips") await recordHit("/allowedips:run");
   else if (kind === "qr" || kind === "qr-errors" || kind === "qr-server") await recordHit(`/qr:${kind === "qr" ? "run" : kind.slice(3)}`);
   else if (kind === "pair") await recordHit(`/check:pair-${q.get("peers") === "0" ? "ok" : "errors"}`);
+  else if (kind === "keys" || kind === "keys-derive") await recordHit(`/keys:${kind === "keys" ? "gen" : "derive"}`);
   else if (kind === "client-cta") await recordHit("/check:client-cta");
   else if (kind === "addpeer") await recordHit(`/check:addpeer${peers}`);
   else if (kind === "wg-easy") await recordHit(`/check:run-wgeasy${peers}`);

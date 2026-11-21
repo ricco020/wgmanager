@@ -22,6 +22,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <nav>
               <a href="/check">Config checker</a>
               <a href="/allowedips">AllowedIPs</a>
+              <a href="/keys">Keys</a>
               <a href="/pricing">Pricing</a>
               {user ? (
                 <>
