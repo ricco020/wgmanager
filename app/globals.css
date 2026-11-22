@@ -100,9 +100,12 @@ dl.checks dd { margin: 4px 0 0; font-size: 14px; }
 textarea { font-family: var(--mono); font-size: 14px; padding: 10px 12px; background: #0a0d12; color: var(--text); border: 1px solid var(--line); border-radius: 6px; width: 100%; }
 textarea::placeholder { color: #7d8a9a; }
 .nav .brand { white-space: nowrap; }
-.menu summary { display: none; }
+.menu { display: none; }
+.nav nav.desk { display: flex; align-items: center; }
 .menu > nav { display: flex; align-items: center; }
 @media (max-width: 760px) {
+  .menu { display: block; }
+  .nav nav.desk { display: none; }
   .nav { position: relative; padding: 12px 0; }
   .menu summary { display: grid; place-items: center; list-style: none; min-width: 64px; height: 44px; padding: 0 14px; border: 1px solid var(--line); border-radius: 8px; color: var(--text); cursor: pointer; font-weight: 600; }
   .menu summary::-webkit-details-marker { display: none; }

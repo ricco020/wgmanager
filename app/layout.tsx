@@ -11,15 +11,10 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const user = await currentUser();
-  return (
-    <html lang="en">
-      <body>
-        <div className="wrap">
-          <header className="nav">
-            <a className="brand" href="/">WireGuard <span>Manager</span></a>
-            <details className="menu">
-              <summary aria-label="Menu">Menu</summary>
-              <nav>
+  // Rendered twice: inside the mobile <details> menu and as a plain desktop nav. A closed <details> hides its
+  // content whatever the CSS says, so on desktop the links were never visible (seen 22/11 at 1440 px).
+  const links = (
+    <>
               <a href="/check">Config checker</a>
               <a href="/allowedips">AllowedIPs</a>
               <a href="/keys">Keys</a>
@@ -38,8 +33,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   <a className="btn sm" href="/signup" style={{ marginLeft: 18 }}>Start free</a>
                 </>
               )}
-              </nav>
+    </>
+  );
+  return (
+    <html lang="en">
+      <body>
+        <div className="wrap">
+          <header className="nav">
+            <a className="brand" href="/">WireGuard <span>Manager</span></a>
+            <details className="menu">
+              <summary aria-label="Menu">Menu</summary>
+              <nav>{links}</nav>
             </details>
+            <nav className="desk">{links}</nav>
           </header>
           <main>{children}</main>
           <footer>
