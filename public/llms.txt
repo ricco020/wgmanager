@@ -5,6 +5,8 @@
 ## Free tools (no account)
 - [WireGuard config checker](https://wg.vpnsmith.com/check): paste a wg0.conf or a client .conf and get, line by line, what wg-quick refuses and what misroutes traffic: truncated or swapped keys, unknown keys and sections, overlapping AllowedIPs between peers, duplicate peers, missing or private Endpoint, MTU above 1420, IPv6 and DNS leaks in a full tunnel, server hygiene (ListenPort, SaveConfig, NAT interface in PostUp). On a server file, add a peer: next free IP, keys, client .conf and QR code.
 - [WireGuard AllowedIPs calculator](https://wg.vpnsmith.com/allowedips): WireGuard has no exclude option; enter what the tunnel carries and what must stay out (a LAN, one IP, a range) and get the AllowedIPs line as the shortest list of CIDR blocks, IPv4 and IPv6.
+- [WireGuard key generator](https://wg.vpnsmith.com/keys): a private and public key pair and a preshared key in the wg genkey, wg pubkey and wg genpsk format, generated in the browser (WebCrypto X25519); paste an existing PrivateKey to get the public key the other side must list in its [Peer] block, the usual cause of a handshake that never completes.
+- [WireGuard QR code generator](https://wg.vpnsmith.com/qr): paste or open a client .conf and get the QR code the WireGuard app scans on Android and iOS, with a check of the keys and fields the app rejects; runs in the browser, the private key is never uploaded. Terminal equivalent: qrencode -t ansiutf8 < client.conf.
 - [WireGuard config generator](https://www.vpnsmith.com/en/tools/wireguard-config-generator): server and client configs with keys generated in the browser, on vpnsmith.com.
 
 ## Hosted manager
