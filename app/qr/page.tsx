@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { recordHit } from "@/lib/stats";
 import { FREE_LIMITS, PRO_FOR_SALE, PRO_PRICE_EUR, SITE } from "@/lib/site";
 import { QrTool } from "./QrTool";
+import { JsonLd, toolLd } from "@/lib/jsonld";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,7 @@ export default async function QrPage({ searchParams }: { searchParams: Promise<{
   await recordHit("/qr", ref);
   return (
     <>
+      <JsonLd data={toolLd("/qr", "WireGuard QR code generator", metadata.description as string, ["Client .conf to QR code for the Android and iOS apps", "Check of the keys and fields the app rejects", "Runs in the browser, the private key is never uploaded"])} />
       <section style={{ padding: "36px 0 16px" }}>
         <div className="fade" style={{ color: "var(--amber)", textTransform: "uppercase", letterSpacing: "0.14em", fontSize: 12, marginBottom: 14 }}>Free tool, no account</div>
         <h1 className="fade d1">WireGuard config to QR code</h1>
