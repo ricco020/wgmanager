@@ -30,6 +30,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
           <p className="muted fade d3">No card. Every new account has Pro limits lifted for {TRIAL_DAYS} days, so a server of any size can be imported.{PRO_FOR_SALE && ` Pro: unlimited servers and peers, ${PRO_PRICE_EUR} EUR/month, cancel anytime.`} Only need the config files once? <a href="https://www.vpnsmith.com/en/tools/wireguard-config-generator?ref=wgm-home">the generator is free</a>.</p>
           <p className="muted fade d3">
             No server yet? WireGuard needs a Linux VPS with a public IP:{" "}
+            <a href="/out/vps?from=home-top" rel="sponsored nofollow">Contabo Cloud VPS 4, from 4.40 EUR/month on 24 months</a>,{" "}
             <a href="/out/vps?from=home-top&p=hp" rel="sponsored nofollow">HostPapa VPS Lite, 2.95 USD/month on 3 years</a>, or{" "}
             <a href="/out/vps?from=home-top&p=hg" rel="sponsored nofollow">Hostinger KVM 1 with 4 GB RAM for Docker too</a>{" "}
             (affiliate links, details below).
@@ -75,12 +76,12 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
         </ol>
         <p className="muted">
           Need a server first? WireGuard needs a machine with a public IP that stays on; a small Linux VPS is enough for a household
-          or a small team. The smallest that runs it:{" "}
+          or a small team. Our first pick:{" "}
+          <a href="/out/vps?from=home" rel="sponsored nofollow">Contabo Cloud VPS 4 with WireGuard preinstalled</a> (listed from 4.40 EUR a month on a 24-month term on 17 November 2026),{" "}
           <a href="/out/vps?from=home&p=hp" rel="sponsored nofollow">HostPapa VPS Lite</a> (1 core, 1 GB RAM, 25 GB NVMe,
           2.95 USD/month on the 3-year term on 17 November 2026, 30-day money-back),{" "}
           <a href="/out/vps?from=home&p=hg" rel="sponsored nofollow">Hostinger KVM 1</a> if you also run Docker (1 vCPU, 4 GB RAM,
-          50 GB NVMe, 6.49 USD/month paid for 24 months on 18 November 2026, renewing at 11.99), or a{" "}
-          <a href="/out/vps?from=home" rel="sponsored nofollow">Contabo VPS with WireGuard preinstalled</a>{" "}
+          50 GB NVMe, 6.49 USD/month paid for 24 months on 18 November 2026, renewing at 11.99){" "}
           (affiliate links: VPNSmith may earn a commission, the price is the same for you). To compare the usual options, the free
           {" "}<a href="https://www.vpnsmith.com/en/tools/self-hosted-vpn-cost-calculator" rel="noopener">self-hosted VPN cost calculator</a>
           {" "}on VPNSmith lists them.

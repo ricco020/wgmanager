@@ -33,9 +33,9 @@ export default async function ServerPage({ params, searchParams }: { params: Pro
       )}
       {server.endpoint === "vpn.example.com" && (
         <p className="muted" style={{ fontSize: 14 }}>No machine with a public IP yet? A small Linux VPS is enough for WireGuard:{" "}
+          <a href="/out/vps?from=sample" rel="sponsored nofollow">Contabo Cloud VPS 4 with WireGuard preinstalled</a> (listed from 4.40 EUR a month on a 24-month term on 17 November 2026),{" "}
           <a href="/out/vps?from=sample&p=hp" rel="sponsored nofollow">HostPapa VPS Lite</a> (1 core, 1 GB RAM, 2.95 USD/month on the 3-year term on 17 November 2026),{" "}
-          <a href="/out/vps?from=sample&p=hg" rel="sponsored nofollow">Hostinger KVM 1</a> if it also runs Docker (4 GB RAM, 6.49 USD/month paid for 24 months on 18 November 2026, renewing at 11.99), or{" "}
-          <a href="/out/vps?from=sample" rel="sponsored nofollow">Contabo with WireGuard preinstalled</a>. Affiliate links: VPNSmith may earn a commission, the price is the same for you.</p>
+          <a href="/out/vps?from=sample&p=hg" rel="sponsored nofollow">Hostinger KVM 1</a> if it also runs Docker (4 GB RAM, 6.49 USD/month paid for 24 months on 18 November 2026, renewing at 11.99). Affiliate links: VPNSmith may earn a commission, the price is the same for you.</p>
       )}
       <div className="panel" style={{ marginBottom: 24 }}>
         <table>

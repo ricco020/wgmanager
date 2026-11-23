@@ -184,8 +184,8 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
               </p>
               <p className="muted" style={{ fontSize: 14 }}>
                 Affiliate links, VPNSmith may earn a commission and the price is the same for you:{" "}
-                <a href="/out/vps?from=check-private&p=hp" rel="sponsored nofollow">HostPapa VPS Lite, public IPv4, 2.95 USD/month on 3 years</a>
-                {" "}or a <a href="/out/vps?from=check-private" rel="sponsored nofollow">Contabo VPS with WireGuard preinstalled</a>.
+                <a href="/out/vps?from=check-private" rel="sponsored nofollow">Contabo Cloud VPS 4 with WireGuard preinstalled, public IPv4, from 4.40 EUR/month on 24 months</a>
+                {" "}or <a href="/out/vps?from=check-private&p=hp" rel="sponsored nofollow">HostPapa VPS Lite, 2.95 USD/month on 3 years</a>.
               </p>
             </div>
           )}
