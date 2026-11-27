@@ -1,3 +1,5 @@
+import { ContaboBfLine } from "@/lib/offers";
+
 /** "Where to run this server" box shown at the result of the checker (direction 29/10: hosting offer at the point of action,
  *  reordered 23/11: Contabo first, the only VPS advertiser with CJ sales, HostPapa 0; vpnsmith did the same on 17/11). Offer read on 28/10 on hostpapa.com: Unmanaged VPS Lite, 1 core, 1 GB, 25 GB NVMe,
  *  2.95 USD/month on the 3-year term, then the regular price; 30-day money-back. Hostinger KVM 1 read on 18/11 (vpnsmith hostinger-vps-black-friday-2026). Clicks counted as /out:vps-<from>[-hp|-hg]. */
@@ -11,7 +13,7 @@ export function HostBlock({ from, title, lead }: { from: string; title: string; 
         Smaller budget: HostPapa Unmanaged VPS Lite, 1 core, 1 GB RAM, 25 GB NVMe, root SSH, a public IPv4,
         30-day money-back. On 17 November 2026 it cost 2.95 USD/month on the 3-year term, then the regular price. Their Black Friday
         sale was running that day: the next plan up, Start (2 cores, 2 GB RAM, 50 GB NVMe), was 4.45 USD/month on the same term.
-        The order page shows the current price.
+        The order page shows the current price. <ContaboBfLine from={from} />
       </p>
       <p className="muted" style={{ fontSize: 14 }}>
         Need more memory for Docker or a second service next to WireGuard? Hostinger KVM 1 has 1 vCPU, 4 GB RAM, 50 GB NVMe and 4 TB

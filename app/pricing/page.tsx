@@ -3,6 +3,7 @@ import { currentUser } from "@/lib/auth";
 import { FREE_LIMITS, PRO_FOR_SALE, PRO_PRICE_EUR, SITE, TRIAL_DAYS } from "@/lib/site";
 import { isPro, stripeReady } from "@/lib/stripe";
 import { recordHit } from "@/lib/stats";
+import { ContaboBfLine } from "@/lib/offers";
 
 export const metadata: Metadata = { title: "Pricing", alternates: { canonical: `${SITE}/pricing` } };
 export const dynamic = "force-dynamic";
@@ -71,7 +72,7 @@ export default async function Pricing({ searchParams }: { searchParams: Promise<
         <a href="/out/vps?from=pricing" rel="sponsored nofollow">Contabo Cloud VPS 4 with WireGuard preinstalled</a> (listed from 4.40 EUR a month on a 24-month term on 17 November 2026),{" "}
         <a href="/out/vps?from=pricing&p=hp" rel="sponsored nofollow">HostPapa VPS Lite, 2.95 USD/month on 3 years</a>,{" "}
         <a href="/out/vps?from=pricing&p=hg" rel="sponsored nofollow">Hostinger KVM 1</a> if the same machine also runs Docker
-        (4 GB RAM, 6.49 USD/month paid for 24 months on 18 November 2026, renewing at 11.99).
+        (4 GB RAM, 6.49 USD/month paid for 24 months on 18 November 2026, renewing at 11.99). <ContaboBfLine from="pricing" />
       </p>
       <p className="muted">Payments are handled by Stripe. We never see your card number. Prices are in euros; your bank converts if your account is in another currency.</p>
     </>

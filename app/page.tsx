@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { FREE_LIMITS, PRO_FOR_SALE, PRO_PRICE_EUR, SITE, TRIAL_DAYS } from "@/lib/site";
 import { recordHit } from "@/lib/stats";
 import { JsonLd, productLd } from "@/lib/jsonld";
+import { ContaboBfLine } from "@/lib/offers";
 
 // ?ref= variants of / (vpnsmith boxes) must fold into one URL.
 export const metadata: Metadata = { alternates: { canonical: `${SITE}/` } };
@@ -33,7 +34,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
             <a href="/out/vps?from=home-top" rel="sponsored nofollow">Contabo Cloud VPS 4, from 4.40 EUR/month on 24 months</a>,{" "}
             <a href="/out/vps?from=home-top&p=hp" rel="sponsored nofollow">HostPapa VPS Lite, 2.95 USD/month on 3 years</a>, or{" "}
             <a href="/out/vps?from=home-top&p=hg" rel="sponsored nofollow">Hostinger KVM 1 with 4 GB RAM for Docker too</a>{" "}
-            (affiliate links, details below).
+            (affiliate links, details below). <ContaboBfLine from="home-top" />
           </p>
         </div>
         <figure className="fade d2" style={{ margin: 0 }}>
